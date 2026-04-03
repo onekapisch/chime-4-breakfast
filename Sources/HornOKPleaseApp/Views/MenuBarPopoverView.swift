@@ -40,6 +40,7 @@ struct MenuBarPopoverView: View {
             ScrollView {
                 VStack(spacing: 12) {
                     header
+                    ReadinessSection()
                     AppToggleSection()
                     SoundSection()
                     RulesSection()

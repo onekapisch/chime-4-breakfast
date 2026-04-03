@@ -3,24 +3,34 @@ import ApplicationServices
 import CryptoKit
 import Foundation
 
-@MainActor
-final class AccessibilityProbe {
-    typealias SnapshotHandler = (WindowSnapshot) -> Void
-    typealias StatusHandler = (_ permissionGranted: Bool, _ runningApps: Set<TargetApp>) -> Void
+typealias AccessibilitySnapshotHandler = (WindowSnapshot) -> Void
+typealias AccessibilityStatusHandler = (_ permissionGranted: Bool, _ runningApps: Set<TargetApp>) -> Void
 
+@MainActor
+protocol AccessibilityProbing: AnyObject {
+    func start(
+        watching apps: [TargetApp],
+        snapshotHandler: @escaping AccessibilitySnapshotHandler,
+        statusHandler: @escaping AccessibilityStatusHandler
+    )
+    func stop()
+}
+
+@MainActor
+final class AccessibilityProbe: AccessibilityProbing {
     private var timer: Timer?
     private var observers: [TargetApp: AXObserver] = [:]
     private var watchedApps: [TargetApp] = []
     private var detectors: [TargetApp: StabilityDetector] = [:]
-    private var snapshotHandler: SnapshotHandler?
-    private var statusHandler: StatusHandler?
+    private var snapshotHandler: AccessibilitySnapshotHandler?
+    private var statusHandler: AccessibilityStatusHandler?
     private let classifier = MessageClassifier()
     private let selector = MessageCandidateSelector()
 
     func start(
         watching apps: [TargetApp],
-        snapshotHandler: @escaping SnapshotHandler,
-        statusHandler: @escaping StatusHandler
+        snapshotHandler: @escaping AccessibilitySnapshotHandler,
+        statusHandler: @escaping AccessibilityStatusHandler
     ) {
         stop()
 

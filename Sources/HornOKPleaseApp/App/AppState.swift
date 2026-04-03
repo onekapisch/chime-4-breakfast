@@ -1,11 +1,10 @@
 import AppKit
-import ApplicationServices
 import Combine
 import Foundation
 
 @MainActor
 final class AppState: ObservableObject {
-    enum Status {
+    enum Status: Equatable {
         case idle
         case watching
         case paused
@@ -23,23 +22,27 @@ final class AppState: ObservableObject {
     private let activityStore: ActivityStore
     private let soundEngine: SoundEngine
     private let appObserver: AppObserver
-    private let accessibilityProbe: AccessibilityProbe
+    private let accessibilityProbe: any AccessibilityProbing
+    private let accessibilityAuthorizer: any AccessibilityAuthorizing
     private let classifier = MessageClassifier()
     private var cancellables: Set<AnyCancellable> = []
     private var attentionResetTask: Task<Void, Never>?
+    private var hasRequestedAccessibilityPrompt = false
 
     init(
         preferencesStore: PreferencesStore = PreferencesStore(),
         activityStore: ActivityStore = ActivityStore(),
         soundEngine: SoundEngine = SoundEngine(),
         appObserver: AppObserver = AppObserver(),
-        accessibilityProbe: AccessibilityProbe = AccessibilityProbe()
+        accessibilityProbe: any AccessibilityProbing = AccessibilityProbe(),
+        accessibilityAuthorizer: any AccessibilityAuthorizing = AccessibilityAuthorizer()
     ) {
         self.preferencesStore = preferencesStore
         self.activityStore = activityStore
         self.soundEngine = soundEngine
         self.appObserver = appObserver
         self.accessibilityProbe = accessibilityProbe
+        self.accessibilityAuthorizer = accessibilityAuthorizer
         self.preferences = preferencesStore.preferences
         self.recentActivity = activityStore.items
 
@@ -86,18 +89,46 @@ final class AppState: ObservableObject {
         }
     }
 
+    var statusDetail: String {
+        switch status {
+        case .idle:
+            return "Enable Codex or Claude monitoring to start receiving alerts."
+        case .watching:
+            let activeAppNames = runningApps.map(\.displayName).sorted()
+            guard !activeAppNames.isEmpty else {
+                return "Waiting for Codex or Claude to be open."
+            }
+
+            return "Watching \(formattedAppList(activeAppNames)) for finished responses."
+        case .paused:
+            return "Monitoring is paused until you resume it."
+        case .attention:
+            return "The latest assistant response likely needs your input."
+        case .permissionRequired:
+            return "Grant Accessibility access so Horn OK Please can inspect Codex and Claude."
+        case .error:
+            return "The watcher hit an unexpected error. Restart the app and try again."
+        }
+    }
+
     func startMonitoringIfNeeded() {
         guard status != .paused else { return }
         restartMonitoring()
     }
 
     func restartMonitoring() {
+        let trusted = accessibilityAuthorizer.isTrusted()
+        requestAccessibilityPromptIfNeeded(trusted: trusted)
         let watchedApps = TargetApp.allCases.filter { preferences.isWatching($0) }
         guard !watchedApps.isEmpty else {
             accessibilityProbe.stop()
             runningApps = []
-            status = AXIsProcessTrusted() ? .idle : .permissionRequired
+            status = trusted ? .idle : .permissionRequired
             return
+        }
+
+        if !trusted {
+            status = .permissionRequired
         }
 
         accessibilityProbe.start(
@@ -207,6 +238,8 @@ final class AppState: ObservableObject {
             return
         }
 
+        hasRequestedAccessibilityPrompt = false
+
         if status != .attention {
             status = preferences.isWatching(.codex) || preferences.isWatching(.claude) ? .watching : .idle
         }
@@ -218,6 +251,26 @@ final class AppState: ObservableObject {
             try? await Task.sleep(for: .seconds(90))
             guard let self, self.status == .attention else { return }
             self.status = .watching
+        }
+    }
+
+    private func requestAccessibilityPromptIfNeeded(trusted: Bool) {
+        guard !trusted, !hasRequestedAccessibilityPrompt else { return }
+        accessibilityAuthorizer.requestPrompt()
+        hasRequestedAccessibilityPrompt = true
+    }
+
+    private func formattedAppList(_ names: [String]) -> String {
+        switch names.count {
+        case 0:
+            return ""
+        case 1:
+            return names[0]
+        case 2:
+            return "\(names[0]) and \(names[1])"
+        default:
+            let leadingNames = names.dropLast().joined(separator: ", ")
+            return "\(leadingNames), and \(names[names.count - 1])"
         }
     }
 }

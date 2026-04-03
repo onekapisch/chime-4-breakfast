@@ -24,6 +24,21 @@ open HornOKPlease.xcodeproj
 
 3. Grant Accessibility access to Horn OK Please when prompted.
 
+## First Manual Test
+
+1. Run `xcodegen generate`.
+2. Open `HornOKPlease.xcodeproj` in Xcode.
+3. Select the `HornOKPleaseApp` scheme and run it.
+4. On first launch, allow the Accessibility prompt. If macOS does not surface it, use the `Open Accessibility` action from the popover and enable `Horn OK Please` manually.
+5. Look in the macOS menu bar for the Horn OK Please icon. This app runs as an agent utility, not a Dock app.
+6. Keep `Codex.app` or `Claude.app` open with a visible conversation window.
+7. Ask either assistant something short and wait for the response to settle.
+8. Confirm these signals:
+   - the menu bar icon changes to the live waveform state
+   - the `Apps` section shows the target app as running
+   - a sound plays on completion or attention-needed output
+   - the event appears in the `Recent` log
+
 ## Development Commands
 
 Run tests:
@@ -43,6 +58,8 @@ Build and launch the menu bar app:
 ```bash
 ./scripts/run-debug.sh
 ```
+
+The debug script uses a repo-local `.derived-data/` folder so the built app path stays deterministic.
 
 ## Current Scope
 
