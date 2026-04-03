@@ -1,0 +1,48 @@
+name: HornOKPlease
+options:
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: 6.0
+    MACOSX_DEPLOYMENT_TARGET: 14.0
+schemes:
+  HornOKPleaseApp:
+    build:
+      targets:
+        HornOKPleaseApp: all
+        HornOKPleaseTests: [test]
+    test:
+      targets:
+        - HornOKPleaseTests
+targets:
+  HornOKPleaseApp:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Sources/HornOKPleaseApp
+    resources:
+      - path: Sources/HornOKPleaseApp/Resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.equinox.HornOKPlease
+        PRODUCT_NAME: Horn OK Please
+        PRODUCT_MODULE_NAME: HornOKPleaseApp
+        EXECUTABLE_NAME: HornOKPleaseApp
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Horn OK Please
+        INFOPLIST_KEY_LSUIElement: YES
+        DEFINES_MODULE: YES
+  HornOKPleaseTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Tests/HornOKPleaseTests
+    dependencies:
+      - target: HornOKPleaseApp
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Horn OK Please.app/Contents/MacOS/HornOKPleaseApp"
+        BUNDLE_LOADER: "$(TEST_HOST)"
