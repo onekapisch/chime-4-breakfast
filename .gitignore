@@ -1,6 +1,7 @@
 .DS_Store
 .build/
 .derived-data/
+.release/
 DerivedData/
 build/
 HornOKPlease.xcodeproj/
@@ -8,3 +9,7 @@ HornOKPlease.xcodeproj/
 *.xcuserstate
 xcuserdata/
 .env.local
+
+# Local planning artifacts (not part of the project)
+task_plan.md
+notes.md

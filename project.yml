@@ -33,6 +33,7 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Horn OK Please
         INFOPLIST_KEY_LSUIElement: YES
         DEFINES_MODULE: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
   HornOKPleaseTests:
     type: bundle.unit-test
     platform: macOS
