@@ -10,6 +10,35 @@ final class UserPreferencesTests: XCTestCase {
         XCTAssertTrue(preferences.watchClaude)
     }
 
+    func test_defaults_enable_glow_with_distinct_colors() {
+        let preferences = UserPreferences.defaultValue
+
+        XCTAssertTrue(preferences.screenGlowEnabled)
+        XCTAssertNotEqual(preferences.completionGlowColorHex, preferences.attentionGlowColorHex)
+    }
+
+    func test_decoding_missing_keys_falls_back_to_defaults() throws {
+        let legacyJSON = """
+        {
+            "watchCodex": false,
+            "watchClaude": true,
+            "completionAlertsEnabled": true,
+            "attentionAlertsEnabled": true,
+            "completionSoundID": "wave",
+            "attentionSoundID": "horn",
+            "quietHoursEnabled": false,
+            "quietHoursStartHour": 22,
+            "quietHoursEndHour": 8
+        }
+        """
+
+        let decoded = try JSONDecoder().decode(UserPreferences.self, from: Data(legacyJSON.utf8))
+
+        XCTAssertFalse(decoded.watchCodex)
+        XCTAssertTrue(decoded.screenGlowEnabled)
+        XCTAssertEqual(decoded.completionGlowColorHex, UserPreferences.defaultValue.completionGlowColorHex)
+    }
+
     func test_quiet_hours_wrap_past_midnight() {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
@@ -33,7 +62,10 @@ final class UserPreferencesTests: XCTestCase {
             attentionSoundID: "horn",
             quietHoursEnabled: true,
             quietHoursStartHour: 22,
-            quietHoursEndHour: 8
+            quietHoursEndHour: 8,
+            screenGlowEnabled: true,
+            completionGlowColorHex: "#30D158",
+            attentionGlowColorHex: "#FF453A"
         )
 
         XCTAssertTrue(preferences.quietHoursContains(lateNight, calendar: calendar))

@@ -67,6 +67,8 @@ private final class TestAccessibilityProbe: AccessibilityProbing {
     }
 
     func stop() {}
+
+    func captureDiagnostics(for apps: [TargetApp]) -> String { "" }
 }
 
 @MainActor

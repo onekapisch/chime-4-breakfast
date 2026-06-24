@@ -14,14 +14,15 @@ struct MessageClassifier {
         "let me know"
     ]
 
-    func classify(_ message: String) -> NotificationEventType {
+    func classify(_ message: String, extraPhrases: [String] = []) -> NotificationEventType {
         let normalized = normalize(message)
 
         if normalized.contains("?") {
             return .attention
         }
 
-        if attentionPhrases.contains(where: normalized.contains) {
+        let phrases = attentionPhrases + extraPhrases.map { normalize($0) }.filter { !$0.isEmpty }
+        if phrases.contains(where: { containsWholePhrase($0, in: normalized) }) {
             return .attention
         }
 
@@ -31,6 +32,14 @@ struct MessageClassifier {
         }
 
         return .completion
+    }
+
+    /// Matches a phrase only on whole-word boundaries so substrings inside
+    /// larger words do not trigger a false positive (for example, "approved"
+    /// must not match "approve", and "unblocked" must not match "blocked").
+    private func containsWholePhrase(_ phrase: String, in text: String) -> Bool {
+        let pattern = "\\b" + NSRegularExpression.escapedPattern(for: phrase) + "\\b"
+        return text.range(of: pattern, options: .regularExpression) != nil
     }
 
     func normalizedExcerpt(from message: String, limit: Int = 96) -> String {

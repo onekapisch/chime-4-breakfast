@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RulesSection: View {
     @EnvironmentObject private var appState: AppState
+    @State private var newPhrase = ""
 
     private let hours = Array(0..<24)
 
@@ -25,6 +26,15 @@ struct RulesSection: View {
                     isOn: Binding(
                         get: { appState.preferences.attentionAlertsEnabled },
                         set: { appState.setAlertsEnabled($0, for: .attention) }
+                    )
+                )
+
+                ToggleRow(
+                    title: "Notification banners",
+                    subtitle: "Also post a macOS notification for each alert",
+                    isOn: Binding(
+                        get: { appState.preferences.notificationsEnabled },
+                        set: { appState.setNotificationsEnabled($0) }
                     )
                 )
 
@@ -56,8 +66,57 @@ struct RulesSection: View {
                         )
                     }
                 }
+
+                phraseEditor
             }
         }
+    }
+
+    private var phraseEditor: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Custom attention phrases")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(ColorTokens.fog.opacity(0.72))
+
+            Text("Treat a response as attention-needed when it contains one of these")
+                .font(.system(size: 11))
+                .foregroundStyle(ColorTokens.fog.opacity(0.58))
+
+            HStack(spacing: 8) {
+                TextField("Add a phrase…", text: $newPhrase)
+                    .textFieldStyle(.roundedBorder)
+                    .onSubmit(addPhrase)
+
+                Button("Add", action: addPhrase)
+                    .buttonStyle(.bordered)
+                    .disabled(newPhrase.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+
+            ForEach(appState.preferences.customAttentionPhrases, id: \.self) { phrase in
+                HStack(spacing: 8) {
+                    Text(phrase)
+                        .font(.system(size: 12))
+                        .foregroundStyle(.white)
+                    Spacer()
+                    Button {
+                        appState.removeAttentionPhrase(phrase)
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 12))
+                    }
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(ColorTokens.fog.opacity(0.6))
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(Color.white.opacity(0.04), in: Capsule())
+            }
+        }
+    }
+
+    private func addPhrase() {
+        appState.addAttentionPhrase(newPhrase)
+        newPhrase = ""
     }
 
     private func quietHourPicker(title: String, selection: Binding<Int>) -> some View {

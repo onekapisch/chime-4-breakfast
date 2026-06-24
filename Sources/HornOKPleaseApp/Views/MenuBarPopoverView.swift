@@ -43,8 +43,10 @@ struct MenuBarPopoverView: View {
                     ReadinessSection()
                     AppToggleSection()
                     SoundSection()
+                    GlowSection()
                     RulesSection()
                     RecentActivitySection()
+                    GeneralSection()
                     utilityRow
                 }
                 .padding(12)
@@ -118,7 +120,7 @@ struct MenuBarPopoverView: View {
         case .idle:
             "Idle"
         case .watching:
-            "Live"
+            appState.runningApps.isEmpty ? "Waiting" : "Live"
         case .paused:
             "Paused"
         case .attention:

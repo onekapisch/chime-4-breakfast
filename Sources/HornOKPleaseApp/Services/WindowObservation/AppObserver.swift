@@ -7,10 +7,10 @@ final class AppObserver {
         self.classifier = classifier
     }
 
-    func process(_ snapshot: WindowSnapshot) -> ObservedEvent? {
+    func process(_ snapshot: WindowSnapshot, extraPhrases: [String] = []) -> ObservedEvent? {
         return ObservedEvent(
             sourceApp: snapshot.app,
-            eventType: classifier.classify(snapshot.message),
+            eventType: classifier.classify(snapshot.message, extraPhrases: extraPhrases),
             message: snapshot.message,
             fingerprint: snapshot.fingerprint
         )

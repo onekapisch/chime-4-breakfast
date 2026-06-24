@@ -22,6 +22,11 @@ final class ActivityStore: ObservableObject {
         persist()
     }
 
+    func clear() {
+        items = []
+        persist()
+    }
+
     private func load() {
         guard
             let data = defaults.data(forKey: storageKey),

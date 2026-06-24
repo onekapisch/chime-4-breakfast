@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import Foundation
+import SwiftUI
 
 @MainActor
 final class AppState: ObservableObject {
@@ -17,6 +18,7 @@ final class AppState: ObservableObject {
     @Published var preferences: UserPreferences
     @Published private(set) var recentActivity: [ActivityItem] = []
     @Published private(set) var runningApps: Set<TargetApp> = []
+    @Published private(set) var launchAtLoginEnabled: Bool = false
 
     private let preferencesStore: PreferencesStore
     private let activityStore: ActivityStore
@@ -24,6 +26,9 @@ final class AppState: ObservableObject {
     private let appObserver: AppObserver
     private let accessibilityProbe: any AccessibilityProbing
     private let accessibilityAuthorizer: any AccessibilityAuthorizing
+    private let screenGlowController: ScreenGlowController
+    private let loginItemController: any LoginItemControlling
+    private let notificationPresenter: NotificationPresenter
     private let classifier = MessageClassifier()
     private var cancellables: Set<AnyCancellable> = []
     private var attentionResetTask: Task<Void, Never>?
@@ -35,7 +40,10 @@ final class AppState: ObservableObject {
         soundEngine: SoundEngine = SoundEngine(),
         appObserver: AppObserver = AppObserver(),
         accessibilityProbe: any AccessibilityProbing = AccessibilityProbe(),
-        accessibilityAuthorizer: any AccessibilityAuthorizing = AccessibilityAuthorizer()
+        accessibilityAuthorizer: any AccessibilityAuthorizing = AccessibilityAuthorizer(),
+        screenGlowController: ScreenGlowController = ScreenGlowController(),
+        loginItemController: any LoginItemControlling = LoginItemController(),
+        notificationPresenter: NotificationPresenter = NotificationPresenter()
     ) {
         self.preferencesStore = preferencesStore
         self.activityStore = activityStore
@@ -43,8 +51,12 @@ final class AppState: ObservableObject {
         self.appObserver = appObserver
         self.accessibilityProbe = accessibilityProbe
         self.accessibilityAuthorizer = accessibilityAuthorizer
+        self.screenGlowController = screenGlowController
+        self.loginItemController = loginItemController
+        self.notificationPresenter = notificationPresenter
         self.preferences = preferencesStore.preferences
         self.recentActivity = activityStore.items
+        self.launchAtLoginEnabled = loginItemController.isEnabled()
 
         preferencesStore.$preferences
             .sink { [weak self] in self?.preferences = $0 }
@@ -77,7 +89,7 @@ final class AppState: ObservableObject {
         case .idle:
             "Idle"
         case .watching:
-            "Watching Codex + Claude"
+            runningApps.isEmpty ? "Waiting for Codex or Claude" : "Watching"
         case .paused:
             "Paused"
         case .attention:
@@ -173,12 +185,94 @@ final class AppState: ObservableObject {
         preferencesStore.preferences = preferences
     }
 
+    func setScreenGlowEnabled(_ enabled: Bool) {
+        preferences.screenGlowEnabled = enabled
+        preferencesStore.preferences = preferences
+        if !enabled {
+            screenGlowController.dismiss()
+        }
+    }
+
+    func setGlowColor(_ color: Color, for eventType: NotificationEventType) {
+        guard let hex = color.hexString() else { return }
+        preferences.setGlowColorHex(hex, for: eventType)
+        preferencesStore.preferences = preferences
+    }
+
+    func setNotificationsEnabled(_ enabled: Bool) {
+        preferences.notificationsEnabled = enabled
+        preferencesStore.preferences = preferences
+        if enabled {
+            notificationPresenter.requestAuthorizationIfNeeded()
+        }
+    }
+
+    func addAttentionPhrase(_ phrase: String) {
+        let trimmed = phrase.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        guard !preferences.customAttentionPhrases.contains(where: { $0.caseInsensitiveCompare(trimmed) == .orderedSame }) else { return }
+        preferences.customAttentionPhrases.append(trimmed)
+        preferencesStore.preferences = preferences
+    }
+
+    func removeAttentionPhrase(_ phrase: String) {
+        preferences.customAttentionPhrases.removeAll { $0 == phrase }
+        preferencesStore.preferences = preferences
+    }
+
+    func setLaunchAtLogin(_ enabled: Bool) {
+        try? loginItemController.setEnabled(enabled)
+        launchAtLoginEnabled = loginItemController.isEnabled()
+    }
+
+    func clearRecentActivity() {
+        activityStore.clear()
+    }
+
+    /// Writes a detection diagnostics report to the Desktop and reveals it in
+    /// Finder so it can be attached to a bug report.
+    @discardableResult
+    func captureDiagnostics() -> URL? {
+        let report = accessibilityProbe.captureDiagnostics(for: TargetApp.allCases)
+
+        let directory = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first
+            ?? FileManager.default.temporaryDirectory
+
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyyMMdd-HHmmss"
+        let url = directory.appendingPathComponent("HornOKPlease-Diagnostics-\(formatter.string(from: Date())).txt")
+
+        do {
+            try report.write(to: url, atomically: true, encoding: .utf8)
+            NSWorkspace.shared.activateFileViewerSelecting([url])
+            return url
+        } catch {
+            return nil
+        }
+    }
+
     func previewSound(for eventType: NotificationEventType) {
         soundEngine.play(soundID: preferences.soundID(for: eventType))
     }
 
+    func setGlowIntensity(_ intensity: Double) {
+        preferences.glowIntensity = min(max(intensity, 0.2), 1.0)
+        preferencesStore.preferences = preferences
+    }
+
+    func previewGlow(for eventType: NotificationEventType) {
+        let color = glowColor(for: eventType)
+        switch eventType {
+        case .completion:
+            screenGlowController.flashCompletion(color: color, intensity: preferences.glowIntensity)
+        case .attention:
+            screenGlowController.previewAttention(color: color, intensity: preferences.glowIntensity)
+        }
+    }
+
     func pauseWatching() {
         accessibilityProbe.stop()
+        screenGlowController.dismiss()
         runningApps = []
         status = .paused
     }
@@ -198,11 +292,17 @@ final class AppState: ObservableObject {
 
     func acknowledgeAttention() {
         guard status == .attention else { return }
+        attentionResetTask?.cancel()
+        screenGlowController.dismiss()
         status = .watching
     }
 
+    private func glowColor(for eventType: NotificationEventType) -> Color {
+        Color(hex: preferences.glowColorHex(for: eventType)) ?? eventType.accentColor
+    }
+
     private func handle(snapshot: WindowSnapshot) {
-        guard let observedEvent = appObserver.process(snapshot) else { return }
+        guard let observedEvent = appObserver.process(snapshot, extraPhrases: preferences.customAttentionPhrases) else { return }
 
         let item = ActivityItem(
             id: UUID(),
@@ -215,8 +315,26 @@ final class AppState: ObservableObject {
 
         activityStore.append(item)
 
-        if preferences.alertsEnabled(for: observedEvent.eventType), !preferences.quietHoursContains(Date()) {
+        let alertAllowed = preferences.alertsEnabled(for: observedEvent.eventType) && !preferences.quietHoursContains(Date())
+
+        if alertAllowed {
             soundEngine.play(soundID: preferences.soundID(for: observedEvent.eventType))
+        }
+
+        if alertAllowed, preferences.notificationsEnabled {
+            notificationPresenter.present(
+                title: "\(observedEvent.sourceApp.displayName) · \(observedEvent.eventType.title)",
+                body: item.excerpt
+            )
+        }
+
+        if preferences.screenGlowEnabled {
+            switch observedEvent.eventType {
+            case .completion:
+                screenGlowController.flashCompletion(color: glowColor(for: .completion), intensity: preferences.glowIntensity)
+            case .attention:
+                screenGlowController.showAttention(color: glowColor(for: .attention), intensity: preferences.glowIntensity)
+            }
         }
 
         switch observedEvent.eventType {
@@ -250,6 +368,7 @@ final class AppState: ObservableObject {
         attentionResetTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(90))
             guard let self, self.status == .attention else { return }
+            self.screenGlowController.dismiss()
             self.status = .watching
         }
     }

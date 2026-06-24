@@ -23,4 +23,22 @@ final class ActivityStoreTests: XCTestCase {
         XCTAssertEqual(store.items.first?.fingerprint, "9")
         XCTAssertEqual(store.items.last?.fingerprint, "2")
     }
+
+    func test_clear_removes_all_items() {
+        let store = ActivityStore(defaults: UserDefaults(suiteName: UUID().uuidString)!)
+        store.append(
+            ActivityItem(
+                id: UUID(),
+                sourceApp: .claude,
+                eventType: .attention,
+                timestamp: Date(),
+                excerpt: "Needs input?",
+                fingerprint: "1"
+            )
+        )
+
+        store.clear()
+
+        XCTAssertTrue(store.items.isEmpty)
+    }
 }

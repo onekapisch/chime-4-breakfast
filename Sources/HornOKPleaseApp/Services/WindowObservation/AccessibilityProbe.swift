@@ -14,6 +14,12 @@ protocol AccessibilityProbing: AnyObject {
         statusHandler: @escaping AccessibilityStatusHandler
     )
     func stop()
+
+    /// Produces a human-readable snapshot of what the watcher currently sees for
+    /// each app: the raw Accessibility strings, the selected candidate, and how
+    /// it would be classified. Used by the diagnostics capture action so users
+    /// can report misdetections with real data.
+    func captureDiagnostics(for apps: [TargetApp]) -> String
 }
 
 @MainActor
@@ -24,6 +30,7 @@ final class AccessibilityProbe: AccessibilityProbing {
     private var detectors: [TargetApp: StabilityDetector] = [:]
     private var snapshotHandler: AccessibilitySnapshotHandler?
     private var statusHandler: AccessibilityStatusHandler?
+    private var coalesceTask: Task<Void, Never>?
     private let classifier = MessageClassifier()
     private let selector = MessageCandidateSelector()
 
@@ -51,11 +58,64 @@ final class AccessibilityProbe: AccessibilityProbing {
     func stop() {
         timer?.invalidate()
         timer = nil
+        coalesceTask?.cancel()
+        coalesceTask = nil
         let runLoop = CFRunLoopGetMain()
         for observer in observers.values {
             CFRunLoopRemoveSource(runLoop, AXObserverGetRunLoopSource(observer), .commonModes)
         }
         observers.removeAll()
+    }
+
+    /// Collapses bursts of Accessibility change notifications (common while a
+    /// response is streaming) into at most one tree walk every 200 ms. The
+    /// periodic timer still provides a steady 0.75 s baseline.
+    func scheduleCoalescedTick() {
+        guard coalesceTask == nil else { return }
+        coalesceTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(200))
+            guard let self, !Task.isCancelled else { return }
+            self.coalesceTask = nil
+            self.tick()
+        }
+    }
+
+    func captureDiagnostics(for apps: [TargetApp]) -> String {
+        let timestamp = ISO8601DateFormatter().string(from: Date())
+        var lines: [String] = [
+            "Horn OK Please — Detection Diagnostics",
+            "Generated: \(timestamp)",
+            "Accessibility trusted: \(AXIsProcessTrusted())",
+            ""
+        ]
+
+        for app in apps {
+            lines.append("=== \(app.displayName) (\(app.bundleIdentifier)) ===")
+
+            guard let runningApp = app.runningApplications.first else {
+                lines.append("Not running.")
+                lines.append("")
+                continue
+            }
+
+            let strings = collectCandidateStrings(from: runningApp)
+            let selected = selector.select(from: strings)
+            let classification = selected.map { classifier.classify($0).rawValue } ?? "n/a"
+
+            lines.append("Running: yes (pid \(runningApp.processIdentifier))")
+            lines.append("Raw strings collected: \(strings.count)")
+            lines.append("Selected candidate: \(selected ?? "<none>")")
+            lines.append("Would classify as: \(classification)")
+            lines.append("")
+            lines.append("--- raw strings (first 80) ---")
+            for (index, value) in strings.prefix(80).enumerated() {
+                let trimmed = value.count > 200 ? String(value.prefix(200)) + "…" : value
+                lines.append("[\(index)] \(trimmed)")
+            }
+            lines.append("")
+        }
+
+        return lines.joined(separator: "\n")
     }
 
     private func tick() {
@@ -91,12 +151,15 @@ final class AccessibilityProbe: AccessibilityProbing {
     }
 
     private func extractLatestMessage(from runningApp: NSRunningApplication) -> String? {
+        selector.select(from: collectCandidateStrings(from: runningApp))
+    }
+
+    private func collectCandidateStrings(from runningApp: NSRunningApplication) -> [String] {
         let applicationElement = AXUIElementCreateApplication(runningApp.processIdentifier)
         let rootElement = focusedWindow(of: applicationElement) ?? firstWindow(of: applicationElement) ?? applicationElement
 
         var budget = 500
-        let strings = collectStrings(from: rootElement, depth: 0, budget: &budget)
-        return selector.select(from: strings)
+        return collectStrings(from: rootElement, depth: 0, budget: &budget)
     }
 
     private func focusedWindow(of applicationElement: AXUIElement) -> AXUIElement? {
@@ -170,7 +233,7 @@ final class AccessibilityProbe: AccessibilityProbing {
             guard let refcon else { return }
             let probe = Unmanaged<AccessibilityProbe>.fromOpaque(refcon).takeUnretainedValue()
             Task { @MainActor in
-                probe.tick()
+                probe.scheduleCoalescedTick()
             }
         }
 
