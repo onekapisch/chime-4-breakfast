@@ -38,7 +38,7 @@ ctx.saveGState()
 ctx.addPath(basePath)
 ctx.clip()
 
-let baseColors = [rgb(20, 18, 30), rgb(8, 8, 13)] as CFArray
+let baseColors = [rgb(32, 32, 36), rgb(2, 2, 4)] as CFArray
 let baseGradient = CGGradient(colorsSpace: colorSpace, colors: baseColors, locations: [0, 1])!
 ctx.drawLinearGradient(baseGradient, start: CGPoint(x: 0, y: canvas), end: CGPoint(x: 0, y: 0), options: [])
 
@@ -48,9 +48,20 @@ func radialGlow(_ center: CGPoint, _ color: CGColor, _ outerRadius: CGFloat) {
     ctx.drawRadialGradient(gradient, startCenter: center, startRadius: 0, endCenter: center, endRadius: outerRadius, options: [])
 }
 
-// Monochrome: a single soft silver light from the top for depth.
-radialGlow(CGPoint(x: canvas * 0.50, y: canvas * 0.72), rgb(255, 255, 255, 0.16), canvas * 0.60)
-radialGlow(CGPoint(x: canvas * 0.50, y: canvas * 0.30), rgb(255, 255, 255, 0.05), canvas * 0.50)
+// Edge vignette deepens the corners for a polished black-glass look.
+let vignetteColors = [rgb(0, 0, 0, 0.0), rgb(0, 0, 0, 0.60)] as CFArray
+let vignette = CGGradient(colorsSpace: colorSpace, colors: vignetteColors, locations: [0.42, 1.0])!
+let vignetteCenter = CGPoint(x: canvas / 2, y: canvas / 2)
+ctx.drawRadialGradient(
+    vignette,
+    startCenter: vignetteCenter, startRadius: canvas * 0.18,
+    endCenter: vignetteCenter, endRadius: canvas * 0.72,
+    options: []
+)
+
+// Glossy specular sheen near the top edge.
+radialGlow(CGPoint(x: canvas * 0.50, y: canvas * 0.82), rgb(255, 255, 255, 0.18), canvas * 0.52)
+radialGlow(CGPoint(x: canvas * 0.50, y: canvas * 0.34), rgb(255, 255, 255, 0.04), canvas * 0.44)
 
 // Waveform bars, center-weighted.
 let heights: [CGFloat] = [0.30, 0.55, 0.80, 0.50, 0.34]
