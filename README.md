@@ -2,6 +2,15 @@
 
 Horn OK Please is a native macOS menu bar utility for Codex desktop and Claude Desktop. It listens for finished assistant responses through the Accessibility layer and plays one sound for normal completions and another for messages that likely need your attention.
 
+## Features
+
+- Watches Codex desktop and Claude Desktop and fires once per finished response
+- Distinct completion vs attention sounds, with a 14-sound built-in catalog and live preview
+- Full-screen edge glow: the display border lights up in your chosen color on completion and a stronger color for attention-needed replies, across every connected display
+- Quiet hours, per-event alert toggles, and a compact recent-activity log (local only)
+- Launch at login, and a one-click clear for recent activity
+- Deterministic, on-device classification — no captured text ever leaves the machine
+
 ## Requirements
 
 - macOS 14 or newer
