@@ -1,5 +1,5 @@
 import XCTest
-@testable import HornOKPleaseApp
+@testable import Chime4BreakfastApp
 
 final class UserPreferencesTests: XCTestCase {
     func test_defaults_use_distinct_sound_profiles() {

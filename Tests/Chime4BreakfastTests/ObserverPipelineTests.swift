@@ -1,5 +1,5 @@
 import XCTest
-@testable import HornOKPleaseApp
+@testable import Chime4BreakfastApp
 
 final class ObserverPipelineTests: XCTestCase {
     func test_observer_classifies_every_new_snapshot() {

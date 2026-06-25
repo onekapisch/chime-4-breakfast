@@ -4,7 +4,7 @@
 .release/
 DerivedData/
 build/
-HornOKPlease.xcodeproj/
+Chime4Breakfast.xcodeproj/
 *.xcworkspace
 *.xcuserstate
 xcuserdata/

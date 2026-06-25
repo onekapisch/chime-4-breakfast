@@ -17,7 +17,7 @@
 
 ## 2026-04-03
 
-- Initialized the Horn OK Please macOS menu bar project
+- Initialized the Chime 4 Breakfast macOS menu bar project
 - Added the design spec and implementation plan
 - Added the native SwiftUI scaffold, watcher pipeline, and required project docs
 - Added first-run Accessibility prompting, readiness guidance, and live startup status coverage

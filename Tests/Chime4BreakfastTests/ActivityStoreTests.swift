@@ -1,5 +1,5 @@
 import XCTest
-@testable import HornOKPleaseApp
+@testable import Chime4BreakfastApp
 
 @MainActor
 final class ActivityStoreTests: XCTestCase {

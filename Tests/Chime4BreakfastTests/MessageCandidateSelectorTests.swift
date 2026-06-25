@@ -1,5 +1,5 @@
 import XCTest
-@testable import HornOKPleaseApp
+@testable import Chime4BreakfastApp
 
 final class MessageCandidateSelectorTests: XCTestCase {
     private let selector = MessageCandidateSelector()

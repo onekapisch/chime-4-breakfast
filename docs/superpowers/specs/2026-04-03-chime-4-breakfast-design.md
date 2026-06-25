@@ -1,11 +1,11 @@
-# Horn OK Please Design
+# Chime 4 Breakfast Design
 
 Date: 2026-04-03
 Status: Draft approved for review
 
 ## Summary
 
-Horn OK Please is a premium macOS menu bar utility that watches Codex desktop and Claude Desktop, detects when a new assistant response has finished, classifies that response, and plays a sound. It uses one sound for normal completion and a stronger sound for messages that likely need user attention.
+Chime 4 Breakfast is a premium macOS menu bar utility that watches Codex desktop and Claude Desktop, detects when a new assistant response has finished, classifies that response, and plays a sound. It uses one sound for normal completion and a stronger sound for messages that likely need user attention.
 
 Version 1 focuses on desktop app coverage only. CLI, API, and web support are future phases.
 
@@ -27,7 +27,7 @@ Version 1 focuses on desktop app coverage only. CLI, API, and web support are fu
 
 ### First Run
 
-1. User launches Horn OK Please.
+1. User launches Chime 4 Breakfast.
 2. App requests Accessibility permission.
 3. User chooses whether to watch Codex, Claude Desktop, or both.
 4. User picks a completion sound and an attention sound.
@@ -36,7 +36,7 @@ Version 1 focuses on desktop app coverage only. CLI, API, and web support are fu
 ### Normal Completion
 
 1. Codex or Claude streams a response.
-2. Horn OK Please waits for the latest assistant message to stabilize.
+2. Chime 4 Breakfast waits for the latest assistant message to stabilize.
 3. The message is classified as `completion`.
 4. The app plays the selected completion sound.
 5. The event is added to the recent activity list.
@@ -44,7 +44,7 @@ Version 1 focuses on desktop app coverage only. CLI, API, and web support are fu
 ### Attention Needed
 
 1. Codex or Claude streams a response.
-2. Horn OK Please waits for the latest assistant message to stabilize.
+2. Chime 4 Breakfast waits for the latest assistant message to stabilize.
 3. The message is classified as `attention`.
 4. The app plays the selected attention sound.
 5. The menu bar icon shifts to an alert state until the user opens the popover or 90 seconds pass, whichever comes first.
@@ -129,7 +129,7 @@ The log is local-only and short-lived. Version 1 keeps the latest 8 items and pe
 
 ### Product Form
 
-Horn OK Please is a menu bar utility first. The primary interface is a compact popover panel. It should feel polished enough to use daily without ever becoming visually loud.
+Chime 4 Breakfast is a menu bar utility first. The primary interface is a compact popover panel. It should feel polished enough to use daily without ever becoming visually loud.
 
 ### Visual Direction
 

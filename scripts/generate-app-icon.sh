@@ -6,7 +6,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-ICONSET="$ROOT_DIR/Sources/HornOKPleaseApp/Resources/Assets.xcassets/AppIcon.appiconset"
+ICONSET="$ROOT_DIR/Sources/Chime4BreakfastApp/Resources/Assets.xcassets/AppIcon.appiconset"
 TMP_DIR="$(mktemp -d)"
 MASTER="$TMP_DIR/icon-1024.png"
 

@@ -1,6 +1,6 @@
 import SwiftUI
 import XCTest
-@testable import HornOKPleaseApp
+@testable import Chime4BreakfastApp
 
 final class ColorHexTests: XCTestCase {
     func test_hex_round_trip_is_stable() {

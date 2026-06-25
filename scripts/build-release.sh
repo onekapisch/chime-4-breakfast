@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-# Builds a Release Horn OK Please.app and packages it into a DMG.
+# Builds a Release Chime 4 Breakfast.app and packages it into a DMG.
 #
 # Optional environment variables enable signing + notarization:
 #   DEVELOPER_ID   "Developer ID Application: Your Name (TEAMID)"  -> codesigns the app
@@ -15,7 +15,7 @@ cd "$ROOT_DIR"
 
 BUILD_DIR="$ROOT_DIR/.release"
 DERIVED="$BUILD_DIR/DerivedData"
-APP_NAME="Horn OK Please"
+APP_NAME="Chime 4 Breakfast"
 DMG_PATH="$BUILD_DIR/$APP_NAME.dmg"
 
 rm -rf "$BUILD_DIR"
@@ -26,7 +26,7 @@ xcodegen generate >/dev/null
 
 echo "==> Building Release"
 xcodebuild \
-  -scheme HornOKPleaseApp \
+  -scheme Chime4BreakfastApp \
   -configuration Release \
   -derivedDataPath "$DERIVED" \
   -destination 'platform=macOS' \

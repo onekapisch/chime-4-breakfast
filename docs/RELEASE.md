@@ -1,6 +1,6 @@
-# Releasing Horn OK Please
+# Releasing Chime 4 Breakfast
 
-Horn OK Please reads other apps' UI through the Accessibility API, so it **cannot
+Chime 4 Breakfast reads other apps' UI through the Accessibility API, so it **cannot
 be sandboxed** and is therefore **not distributable on the Mac App Store**. Ship
 it as a notarized DMG (for example, attached to a GitHub Release).
 
@@ -13,23 +13,23 @@ You need an Apple Developer account ($99/year) for a Developer ID certificate.
 2. Store notarization credentials in the keychain:
 
    ```bash
-   xcrun notarytool store-credentials horn-ok-please \
+   xcrun notarytool store-credentials chime-4-breakfast \
      --apple-id "you@example.com" \
      --team-id "TEAMID" \
      --password "app-specific-password"
    ```
 
-   (`horn-ok-please` becomes your `NOTARY_PROFILE` name.)
+   (`chime-4-breakfast` becomes your `NOTARY_PROFILE` name.)
 
 ## 2. Build, sign, notarize, package
 
 ```bash
 DEVELOPER_ID="Developer ID Application: Your Name (TEAMID)" \
-NOTARY_PROFILE="horn-ok-please" \
+NOTARY_PROFILE="chime-4-breakfast" \
 ./scripts/build-release.sh
 ```
 
-This produces a signed, notarized, stapled `Horn OK Please.dmg` in `.release/`.
+This produces a signed, notarized, stapled `Chime 4 Breakfast.dmg` in `.release/`.
 
 Without `DEVELOPER_ID` / `NOTARY_PROFILE`, the script still builds and packages an
 unsigned DMG for local testing.

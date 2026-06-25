@@ -1,4 +1,4 @@
-name: HornOKPlease
+name: Chime4Breakfast
 options:
   createIntermediateGroups: true
 settings:
@@ -6,44 +6,44 @@ settings:
     SWIFT_VERSION: 6.0
     MACOSX_DEPLOYMENT_TARGET: 14.0
 schemes:
-  HornOKPleaseApp:
+  Chime4BreakfastApp:
     build:
       targets:
-        HornOKPleaseApp: all
-        HornOKPleaseTests: [test]
+        Chime4BreakfastApp: all
+        Chime4BreakfastTests: [test]
     test:
       targets:
-        - HornOKPleaseTests
+        - Chime4BreakfastTests
 targets:
-  HornOKPleaseApp:
+  Chime4BreakfastApp:
     type: application
     platform: macOS
     deploymentTarget: "14.0"
     sources:
-      - path: Sources/HornOKPleaseApp
+      - path: Sources/Chime4BreakfastApp
     resources:
-      - path: Sources/HornOKPleaseApp/Resources
+      - path: Sources/Chime4BreakfastApp/Resources
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.equinox.HornOKPlease
-        PRODUCT_NAME: Horn OK Please
-        PRODUCT_MODULE_NAME: HornOKPleaseApp
-        EXECUTABLE_NAME: HornOKPleaseApp
+        PRODUCT_BUNDLE_IDENTIFIER: app.chime4breakfast
+        PRODUCT_NAME: Chime 4 Breakfast
+        PRODUCT_MODULE_NAME: Chime4BreakfastApp
+        EXECUTABLE_NAME: Chime4BreakfastApp
         GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: Horn OK Please
+        INFOPLIST_KEY_CFBundleDisplayName: Chime 4 Breakfast
         INFOPLIST_KEY_LSUIElement: YES
         DEFINES_MODULE: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-  HornOKPleaseTests:
+  Chime4BreakfastTests:
     type: bundle.unit-test
     platform: macOS
     deploymentTarget: "14.0"
     sources:
-      - path: Tests/HornOKPleaseTests
+      - path: Tests/Chime4BreakfastTests
     dependencies:
-      - target: HornOKPleaseApp
+      - target: Chime4BreakfastApp
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
-        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Horn OK Please.app/Contents/MacOS/HornOKPleaseApp"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Chime 4 Breakfast.app/Contents/MacOS/Chime4BreakfastApp"
         BUNDLE_LOADER: "$(TEST_HOST)"

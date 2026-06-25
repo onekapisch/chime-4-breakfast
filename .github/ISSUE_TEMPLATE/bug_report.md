@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report a problem with Horn OK Please
+about: Report a problem with Chime 4 Breakfast
 title: ""
 labels: bug
 ---
@@ -22,5 +22,5 @@ Desktop.
 ## Environment
 
 - macOS version:
-- Horn OK Please version / commit:
+- Chime 4 Breakfast version / commit:
 - Target app and version (Codex / Claude Desktop):

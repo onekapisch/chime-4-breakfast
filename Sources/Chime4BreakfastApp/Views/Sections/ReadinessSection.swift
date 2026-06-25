@@ -83,7 +83,7 @@ struct ReadinessSection: View {
         switch appState.status {
         case .permissionRequired:
             [
-                "Click Open Accessibility and enable Horn OK Please in System Settings.",
+                "Click Open Accessibility and enable Chime 4 Breakfast in System Settings.",
                 "Keep Codex or Claude open on a conversation screen once permission is granted.",
                 "Wait for a finished assistant response and watch the Recent panel for the first detection."
             ]

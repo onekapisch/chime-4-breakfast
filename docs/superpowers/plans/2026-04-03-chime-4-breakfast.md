@@ -1,4 +1,4 @@
-# Horn OK Please Implementation Plan
+# Chime 4 Breakfast Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -13,37 +13,37 @@
 ## File Structure
 
 - Create: `project.yml`
-- Create: `Horn OK Please.xcodeproj` via XcodeGen
-- Create: `Sources/HornOKPleaseApp/HornOKPleaseApp.swift`
-- Create: `Sources/HornOKPleaseApp/App/StatusBarController.swift`
-- Create: `Sources/HornOKPleaseApp/App/AppState.swift`
-- Create: `Sources/HornOKPleaseApp/Models/ActivityItem.swift`
-- Create: `Sources/HornOKPleaseApp/Models/NotificationEventType.swift`
-- Create: `Sources/HornOKPleaseApp/Models/SoundOption.swift`
-- Create: `Sources/HornOKPleaseApp/Models/TargetApp.swift`
-- Create: `Sources/HornOKPleaseApp/Models/UserPreferences.swift`
-- Create: `Sources/HornOKPleaseApp/Services/ActivityStore.swift`
-- Create: `Sources/HornOKPleaseApp/Services/MessageClassifier.swift`
-- Create: `Sources/HornOKPleaseApp/Services/SoundEngine.swift`
-- Create: `Sources/HornOKPleaseApp/Services/WindowObservation/AppObserver.swift`
-- Create: `Sources/HornOKPleaseApp/Services/WindowObservation/AccessibilityProbe.swift`
-- Create: `Sources/HornOKPleaseApp/Services/WindowObservation/StabilityDetector.swift`
-- Create: `Sources/HornOKPleaseApp/Services/WindowObservation/WindowSnapshot.swift`
-- Create: `Sources/HornOKPleaseApp/Support/ColorTokens.swift`
-- Create: `Sources/HornOKPleaseApp/Support/GlassPanel.swift`
-- Create: `Sources/HornOKPleaseApp/Support/NoiseTexture.swift`
-- Create: `Sources/HornOKPleaseApp/Views/MenuBarPopoverView.swift`
-- Create: `Sources/HornOKPleaseApp/Views/Sections/AppToggleSection.swift`
-- Create: `Sources/HornOKPleaseApp/Views/Sections/RecentActivitySection.swift`
-- Create: `Sources/HornOKPleaseApp/Views/Sections/RulesSection.swift`
-- Create: `Sources/HornOKPleaseApp/Views/Sections/SoundSection.swift`
-- Create: `Sources/HornOKPleaseApp/Resources/Sounds/` bundled audio files
-- Create: `Tests/HornOKPleaseTests/ActivityStoreTests.swift`
-- Create: `Tests/HornOKPleaseTests/MessageClassifierTests.swift`
-- Create: `Tests/HornOKPleaseTests/MessageCandidateSelectorTests.swift`
-- Create: `Tests/HornOKPleaseTests/StabilityDetectorTests.swift`
-- Create: `Tests/HornOKPleaseTests/SoundCatalogTests.swift`
-- Create: `Tests/HornOKPleaseTests/UserPreferencesTests.swift`
+- Create: `Chime 4 Breakfast.xcodeproj` via XcodeGen
+- Create: `Sources/Chime4BreakfastApp/Chime4BreakfastApp.swift`
+- Create: `Sources/Chime4BreakfastApp/App/StatusBarController.swift`
+- Create: `Sources/Chime4BreakfastApp/App/AppState.swift`
+- Create: `Sources/Chime4BreakfastApp/Models/ActivityItem.swift`
+- Create: `Sources/Chime4BreakfastApp/Models/NotificationEventType.swift`
+- Create: `Sources/Chime4BreakfastApp/Models/SoundOption.swift`
+- Create: `Sources/Chime4BreakfastApp/Models/TargetApp.swift`
+- Create: `Sources/Chime4BreakfastApp/Models/UserPreferences.swift`
+- Create: `Sources/Chime4BreakfastApp/Services/ActivityStore.swift`
+- Create: `Sources/Chime4BreakfastApp/Services/MessageClassifier.swift`
+- Create: `Sources/Chime4BreakfastApp/Services/SoundEngine.swift`
+- Create: `Sources/Chime4BreakfastApp/Services/WindowObservation/AppObserver.swift`
+- Create: `Sources/Chime4BreakfastApp/Services/WindowObservation/AccessibilityProbe.swift`
+- Create: `Sources/Chime4BreakfastApp/Services/WindowObservation/StabilityDetector.swift`
+- Create: `Sources/Chime4BreakfastApp/Services/WindowObservation/WindowSnapshot.swift`
+- Create: `Sources/Chime4BreakfastApp/Support/ColorTokens.swift`
+- Create: `Sources/Chime4BreakfastApp/Support/GlassPanel.swift`
+- Create: `Sources/Chime4BreakfastApp/Support/NoiseTexture.swift`
+- Create: `Sources/Chime4BreakfastApp/Views/MenuBarPopoverView.swift`
+- Create: `Sources/Chime4BreakfastApp/Views/Sections/AppToggleSection.swift`
+- Create: `Sources/Chime4BreakfastApp/Views/Sections/RecentActivitySection.swift`
+- Create: `Sources/Chime4BreakfastApp/Views/Sections/RulesSection.swift`
+- Create: `Sources/Chime4BreakfastApp/Views/Sections/SoundSection.swift`
+- Create: `Sources/Chime4BreakfastApp/Resources/Sounds/` bundled audio files
+- Create: `Tests/Chime4BreakfastTests/ActivityStoreTests.swift`
+- Create: `Tests/Chime4BreakfastTests/MessageClassifierTests.swift`
+- Create: `Tests/Chime4BreakfastTests/MessageCandidateSelectorTests.swift`
+- Create: `Tests/Chime4BreakfastTests/StabilityDetectorTests.swift`
+- Create: `Tests/Chime4BreakfastTests/SoundCatalogTests.swift`
+- Create: `Tests/Chime4BreakfastTests/UserPreferencesTests.swift`
 - Create: `AGENTS.md`
 - Create: `README.md`
 - Create: `CHANGELOG.md`
@@ -56,8 +56,8 @@
 
 **Files:**
 - Create: `project.yml`
-- Create: `Sources/HornOKPleaseApp/HornOKPleaseApp.swift`
-- Create: `Sources/HornOKPleaseApp/App/AppState.swift`
+- Create: `Sources/Chime4BreakfastApp/Chime4BreakfastApp.swift`
+- Create: `Sources/Chime4BreakfastApp/App/AppState.swift`
 - Create: `AGENTS.md`
 - Create: `README.md`
 - Create: `CHANGELOG.md`
@@ -68,11 +68,11 @@
 
 - [ ] **Step 1: Write the failing project verification test**
 
-Create `Tests/HornOKPleaseTests/UserPreferencesTests.swift` with:
+Create `Tests/Chime4BreakfastTests/UserPreferencesTests.swift` with:
 
 ```swift
 import XCTest
-@testable import HornOKPleaseApp
+@testable import Chime4BreakfastApp
 
 final class UserPreferencesTests: XCTestCase {
     func test_defaults_use_distinct_sound_profiles() {
@@ -87,7 +87,7 @@ final class UserPreferencesTests: XCTestCase {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `xcodegen generate && xcodebuild test -scheme HornOKPlease -destination 'platform=macOS' -only-testing:HornOKPleaseTests/UserPreferencesTests`
+Run: `xcodegen generate && xcodebuild test -scheme Chime4Breakfast -destination 'platform=macOS' -only-testing:Chime4BreakfastTests/UserPreferencesTests`
 
 Expected: FAIL because the project and `UserPreferences` type do not exist yet.
 
@@ -96,35 +96,35 @@ Expected: FAIL because the project and `UserPreferences` type do not exist yet.
 Create `project.yml` with:
 
 ```yaml
-name: HornOKPlease
+name: Chime4Breakfast
 options:
-  bundleIdPrefix: com.equinox
+  bundleIdPrefix: app.chime4breakfast
 targets:
-  HornOKPlease:
+  Chime4Breakfast:
     type: application
     platform: macOS
     deploymentTarget: "14.0"
     sources:
-      - path: Sources/HornOKPleaseApp
+      - path: Sources/Chime4BreakfastApp
     resources:
-      - path: Sources/HornOKPleaseApp/Resources
+      - path: Sources/Chime4BreakfastApp/Resources
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.equinox.HornOKPlease
+        PRODUCT_BUNDLE_IDENTIFIER: app.chime4breakfast
         INFOPLIST_KEY_LSUIElement: YES
         SWIFT_VERSION: 6.0
-        PRODUCT_NAME: Horn OK Please
+        PRODUCT_NAME: Chime 4 Breakfast
     dependencies: []
-  HornOKPleaseTests:
+  Chime4BreakfastTests:
     type: bundle.unit-test
     platform: macOS
     sources:
-      - path: Tests/HornOKPleaseTests
+      - path: Tests/Chime4BreakfastTests
     dependencies:
-      - target: HornOKPlease
+      - target: Chime4Breakfast
 ```
 
-Create `Sources/HornOKPleaseApp/Models/UserPreferences.swift` with:
+Create `Sources/Chime4BreakfastApp/Models/UserPreferences.swift` with:
 
 ```swift
 import Foundation
@@ -154,17 +154,17 @@ struct UserPreferences: Codable, Equatable {
 }
 ```
 
-Create `Sources/HornOKPleaseApp/HornOKPleaseApp.swift` with:
+Create `Sources/Chime4BreakfastApp/Chime4BreakfastApp.swift` with:
 
 ```swift
 import SwiftUI
 
 @main
-struct HornOKPleaseApp: App {
+struct Chime4BreakfastApp: App {
     @StateObject private var appState = AppState()
 
     var body: some Scene {
-        MenuBarExtra("Horn OK Please", systemImage: appState.menuBarSymbolName) {
+        MenuBarExtra("Chime 4 Breakfast", systemImage: appState.menuBarSymbolName) {
             MenuBarPopoverView()
                 .environmentObject(appState)
         }
@@ -175,7 +175,7 @@ struct HornOKPleaseApp: App {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `xcodegen generate && xcodebuild test -scheme HornOKPlease -destination 'platform=macOS' -only-testing:HornOKPleaseTests/UserPreferencesTests`
+Run: `xcodegen generate && xcodebuild test -scheme Chime4Breakfast -destination 'platform=macOS' -only-testing:Chime4BreakfastTests/UserPreferencesTests`
 
 Expected: PASS with `1 test, 0 failures`.
 
@@ -213,20 +213,20 @@ git commit -m "chore(app): scaffold menu bar project and docs"
 ### Task 2: Build The Domain Models And Response Classification
 
 **Files:**
-- Create: `Sources/HornOKPleaseApp/Models/NotificationEventType.swift`
-- Create: `Sources/HornOKPleaseApp/Models/TargetApp.swift`
-- Create: `Sources/HornOKPleaseApp/Models/ActivityItem.swift`
-- Create: `Sources/HornOKPleaseApp/Services/MessageClassifier.swift`
-- Test: `Tests/HornOKPleaseTests/MessageClassifierTests.swift`
-- Test: `Tests/HornOKPleaseTests/StabilityDetectorTests.swift`
+- Create: `Sources/Chime4BreakfastApp/Models/NotificationEventType.swift`
+- Create: `Sources/Chime4BreakfastApp/Models/TargetApp.swift`
+- Create: `Sources/Chime4BreakfastApp/Models/ActivityItem.swift`
+- Create: `Sources/Chime4BreakfastApp/Services/MessageClassifier.swift`
+- Test: `Tests/Chime4BreakfastTests/MessageClassifierTests.swift`
+- Test: `Tests/Chime4BreakfastTests/StabilityDetectorTests.swift`
 
 - [ ] **Step 1: Write the failing classifier tests**
 
-Create `Tests/HornOKPleaseTests/MessageClassifierTests.swift` with:
+Create `Tests/Chime4BreakfastTests/MessageClassifierTests.swift` with:
 
 ```swift
 import XCTest
-@testable import HornOKPleaseApp
+@testable import Chime4BreakfastApp
 
 final class MessageClassifierTests: XCTestCase {
     private let classifier = MessageClassifier()
@@ -247,13 +247,13 @@ final class MessageClassifierTests: XCTestCase {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `xcodebuild test -scheme HornOKPlease -destination 'platform=macOS' -only-testing:HornOKPleaseTests/MessageClassifierTests`
+Run: `xcodebuild test -scheme Chime4Breakfast -destination 'platform=macOS' -only-testing:Chime4BreakfastTests/MessageClassifierTests`
 
 Expected: FAIL because `MessageClassifier` and `NotificationEventType` do not exist.
 
 - [ ] **Step 3: Implement the classifier minimally**
 
-Create `Sources/HornOKPleaseApp/Models/NotificationEventType.swift` with:
+Create `Sources/Chime4BreakfastApp/Models/NotificationEventType.swift` with:
 
 ```swift
 enum NotificationEventType: String, Codable {
@@ -262,7 +262,7 @@ enum NotificationEventType: String, Codable {
 }
 ```
 
-Create `Sources/HornOKPleaseApp/Services/MessageClassifier.swift` with:
+Create `Sources/Chime4BreakfastApp/Services/MessageClassifier.swift` with:
 
 ```swift
 import Foundation
@@ -292,17 +292,17 @@ struct MessageClassifier {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `xcodebuild test -scheme HornOKPlease -destination 'platform=macOS' -only-testing:HornOKPleaseTests/MessageClassifierTests`
+Run: `xcodebuild test -scheme Chime4Breakfast -destination 'platform=macOS' -only-testing:Chime4BreakfastTests/MessageClassifierTests`
 
 Expected: PASS with `3 tests, 0 failures`.
 
 - [ ] **Step 5: Add stability detector tests and implementation**
 
-Create `Tests/HornOKPleaseTests/StabilityDetectorTests.swift` with:
+Create `Tests/Chime4BreakfastTests/StabilityDetectorTests.swift` with:
 
 ```swift
 import XCTest
-@testable import HornOKPleaseApp
+@testable import Chime4BreakfastApp
 
 final class StabilityDetectorTests: XCTestCase {
     func test_emits_after_message_stops_changing() {
@@ -316,7 +316,7 @@ final class StabilityDetectorTests: XCTestCase {
 }
 ```
 
-Create `Sources/HornOKPleaseApp/Services/WindowObservation/StabilityDetector.swift` with:
+Create `Sources/Chime4BreakfastApp/Services/WindowObservation/StabilityDetector.swift` with:
 
 ```swift
 import Foundation
@@ -345,33 +345,33 @@ final class StabilityDetector {
 
 - [ ] **Step 6: Run tests**
 
-Run: `xcodebuild test -scheme HornOKPlease -destination 'platform=macOS' -only-testing:HornOKPleaseTests/MessageClassifierTests -only-testing:HornOKPleaseTests/StabilityDetectorTests`
+Run: `xcodebuild test -scheme Chime4Breakfast -destination 'platform=macOS' -only-testing:Chime4BreakfastTests/MessageClassifierTests -only-testing:Chime4BreakfastTests/StabilityDetectorTests`
 
 Expected: PASS with `4 tests, 0 failures`.
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add Sources/HornOKPleaseApp/Models Sources/HornOKPleaseApp/Services Tests/HornOKPleaseTests
+git add Sources/Chime4BreakfastApp/Models Sources/Chime4BreakfastApp/Services Tests/Chime4BreakfastTests
 git commit -m "feat(core): add response classification pipeline"
 ```
 
 ### Task 3: Add Sound Catalog, Audio Playback, And Activity Persistence
 
 **Files:**
-- Create: `Sources/HornOKPleaseApp/Models/SoundOption.swift`
-- Create: `Sources/HornOKPleaseApp/Services/SoundEngine.swift`
-- Create: `Sources/HornOKPleaseApp/Services/ActivityStore.swift`
-- Test: `Tests/HornOKPleaseTests/SoundCatalogTests.swift`
-- Test: `Tests/HornOKPleaseTests/ActivityStoreTests.swift`
+- Create: `Sources/Chime4BreakfastApp/Models/SoundOption.swift`
+- Create: `Sources/Chime4BreakfastApp/Services/SoundEngine.swift`
+- Create: `Sources/Chime4BreakfastApp/Services/ActivityStore.swift`
+- Test: `Tests/Chime4BreakfastTests/SoundCatalogTests.swift`
+- Test: `Tests/Chime4BreakfastTests/ActivityStoreTests.swift`
 
 - [ ] **Step 1: Write failing tests for the sound catalog**
 
-Create `Tests/HornOKPleaseTests/SoundCatalogTests.swift` with:
+Create `Tests/Chime4BreakfastTests/SoundCatalogTests.swift` with:
 
 ```swift
 import XCTest
-@testable import HornOKPleaseApp
+@testable import Chime4BreakfastApp
 
 final class SoundCatalogTests: XCTestCase {
     func test_catalog_contains_premium_sound_set() {
@@ -387,13 +387,13 @@ final class SoundCatalogTests: XCTestCase {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `xcodebuild test -scheme HornOKPlease -destination 'platform=macOS' -only-testing:HornOKPleaseTests/SoundCatalogTests`
+Run: `xcodebuild test -scheme Chime4Breakfast -destination 'platform=macOS' -only-testing:Chime4BreakfastTests/SoundCatalogTests`
 
 Expected: FAIL because `SoundOption` does not exist.
 
 - [ ] **Step 3: Implement sound and activity models**
 
-Create `Sources/HornOKPleaseApp/Models/SoundOption.swift` with:
+Create `Sources/Chime4BreakfastApp/Models/SoundOption.swift` with:
 
 ```swift
 import Foundation
@@ -422,7 +422,7 @@ struct SoundOption: Identifiable, Codable, Equatable {
 }
 ```
 
-Create `Sources/HornOKPleaseApp/Models/ActivityItem.swift` with:
+Create `Sources/Chime4BreakfastApp/Models/ActivityItem.swift` with:
 
 ```swift
 import Foundation
@@ -439,7 +439,7 @@ struct ActivityItem: Identifiable, Codable, Equatable {
 
 - [ ] **Step 4: Implement stores and audio playback**
 
-Create `Sources/HornOKPleaseApp/Services/ActivityStore.swift` with:
+Create `Sources/Chime4BreakfastApp/Services/ActivityStore.swift` with:
 
 ```swift
 import Foundation
@@ -456,7 +456,7 @@ final class ActivityStore: ObservableObject {
 }
 ```
 
-Create `Sources/HornOKPleaseApp/Services/SoundEngine.swift` with:
+Create `Sources/Chime4BreakfastApp/Services/SoundEngine.swift` with:
 
 ```swift
 import AppKit
@@ -472,11 +472,11 @@ final class SoundEngine {
 
 - [ ] **Step 5: Run tests and add an activity-store test**
 
-Create `Tests/HornOKPleaseTests/ActivityStoreTests.swift` with:
+Create `Tests/Chime4BreakfastTests/ActivityStoreTests.swift` with:
 
 ```swift
 import XCTest
-@testable import HornOKPleaseApp
+@testable import Chime4BreakfastApp
 
 @MainActor
 final class ActivityStoreTests: XCTestCase {
@@ -503,36 +503,36 @@ final class ActivityStoreTests: XCTestCase {
 }
 ```
 
-Run: `xcodebuild test -scheme HornOKPlease -destination 'platform=macOS' -only-testing:HornOKPleaseTests/SoundCatalogTests -only-testing:HornOKPleaseTests/ActivityStoreTests`
+Run: `xcodebuild test -scheme Chime4Breakfast -destination 'platform=macOS' -only-testing:Chime4BreakfastTests/SoundCatalogTests -only-testing:Chime4BreakfastTests/ActivityStoreTests`
 
 Expected: PASS with `2 tests, 0 failures`.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add Sources/HornOKPleaseApp/Models Sources/HornOKPleaseApp/Services Tests/HornOKPleaseTests
+git add Sources/Chime4BreakfastApp/Models Sources/Chime4BreakfastApp/Services Tests/Chime4BreakfastTests
 git commit -m "feat(audio): add sound catalog and activity persistence"
 ```
 
 ### Task 4: Build The Premium Menu Bar Interface
 
 **Files:**
-- Create: `Sources/HornOKPleaseApp/Support/ColorTokens.swift`
-- Create: `Sources/HornOKPleaseApp/Support/GlassPanel.swift`
-- Create: `Sources/HornOKPleaseApp/Support/NoiseTexture.swift`
-- Create: `Sources/HornOKPleaseApp/Views/MenuBarPopoverView.swift`
-- Create: `Sources/HornOKPleaseApp/Views/Sections/AppToggleSection.swift`
-- Create: `Sources/HornOKPleaseApp/Views/Sections/SoundSection.swift`
-- Create: `Sources/HornOKPleaseApp/Views/Sections/RulesSection.swift`
-- Create: `Sources/HornOKPleaseApp/Views/Sections/RecentActivitySection.swift`
+- Create: `Sources/Chime4BreakfastApp/Support/ColorTokens.swift`
+- Create: `Sources/Chime4BreakfastApp/Support/GlassPanel.swift`
+- Create: `Sources/Chime4BreakfastApp/Support/NoiseTexture.swift`
+- Create: `Sources/Chime4BreakfastApp/Views/MenuBarPopoverView.swift`
+- Create: `Sources/Chime4BreakfastApp/Views/Sections/AppToggleSection.swift`
+- Create: `Sources/Chime4BreakfastApp/Views/Sections/SoundSection.swift`
+- Create: `Sources/Chime4BreakfastApp/Views/Sections/RulesSection.swift`
+- Create: `Sources/Chime4BreakfastApp/Views/Sections/RecentActivitySection.swift`
 
 - [ ] **Step 1: Write the failing view model test**
 
-Create `Tests/HornOKPleaseTests/AppStateTests.swift` with:
+Create `Tests/Chime4BreakfastTests/AppStateTests.swift` with:
 
 ```swift
 import XCTest
-@testable import HornOKPleaseApp
+@testable import Chime4BreakfastApp
 
 @MainActor
 final class AppStateTests: XCTestCase {
@@ -547,13 +547,13 @@ final class AppStateTests: XCTestCase {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `xcodebuild test -scheme HornOKPlease -destination 'platform=macOS' -only-testing:HornOKPleaseTests/AppStateTests`
+Run: `xcodebuild test -scheme Chime4Breakfast -destination 'platform=macOS' -only-testing:Chime4BreakfastTests/AppStateTests`
 
 Expected: FAIL because `AppState` status mapping is incomplete.
 
 - [ ] **Step 3: Implement the app state and UI shell**
 
-Create `Sources/HornOKPleaseApp/App/AppState.swift` with:
+Create `Sources/Chime4BreakfastApp/App/AppState.swift` with:
 
 ```swift
 import Foundation
@@ -584,7 +584,7 @@ final class AppState: ObservableObject {
 }
 ```
 
-Create `Sources/HornOKPleaseApp/Support/ColorTokens.swift` with:
+Create `Sources/Chime4BreakfastApp/Support/ColorTokens.swift` with:
 
 ```swift
 import SwiftUI
@@ -609,40 +609,40 @@ Implement `MenuBarPopoverView` as a 360-point-wide glass panel with:
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `xcodebuild test -scheme HornOKPlease -destination 'platform=macOS' -only-testing:HornOKPleaseTests/AppStateTests`
+Run: `xcodebuild test -scheme Chime4Breakfast -destination 'platform=macOS' -only-testing:Chime4BreakfastTests/AppStateTests`
 
 Expected: PASS with `1 test, 0 failures`.
 
 - [ ] **Step 5: Build and inspect the app shell**
 
-Run: `xcodegen generate && xcodebuild -scheme HornOKPlease -destination 'platform=macOS' build`
+Run: `xcodegen generate && xcodebuild -scheme Chime4Breakfast -destination 'platform=macOS' build`
 
 Expected: BUILD SUCCEEDED.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add Sources/HornOKPleaseApp Tests/HornOKPleaseTests
+git add Sources/Chime4BreakfastApp Tests/Chime4BreakfastTests
 git commit -m "feat(ui): add premium menu bar popover"
 ```
 
 ### Task 5: Integrate Accessibility Observation And End-To-End Flow
 
 **Files:**
-- Create: `Sources/HornOKPleaseApp/Models/TargetApp.swift`
-- Create: `Sources/HornOKPleaseApp/Services/WindowObservation/WindowSnapshot.swift`
-- Create: `Sources/HornOKPleaseApp/Services/WindowObservation/AppObserver.swift`
-- Create: `Sources/HornOKPleaseApp/Services/WindowObservation/AccessibilityProbe.swift`
-- Modify: `Sources/HornOKPleaseApp/App/AppState.swift`
-- Modify: `Sources/HornOKPleaseApp/HornOKPleaseApp.swift`
+- Create: `Sources/Chime4BreakfastApp/Models/TargetApp.swift`
+- Create: `Sources/Chime4BreakfastApp/Services/WindowObservation/WindowSnapshot.swift`
+- Create: `Sources/Chime4BreakfastApp/Services/WindowObservation/AppObserver.swift`
+- Create: `Sources/Chime4BreakfastApp/Services/WindowObservation/AccessibilityProbe.swift`
+- Modify: `Sources/Chime4BreakfastApp/App/AppState.swift`
+- Modify: `Sources/Chime4BreakfastApp/Chime4BreakfastApp.swift`
 
 - [ ] **Step 1: Write the failing observer test around fingerprint deduplication**
 
-Create `Tests/HornOKPleaseTests/ObserverPipelineTests.swift` with:
+Create `Tests/Chime4BreakfastTests/ObserverPipelineTests.swift` with:
 
 ```swift
 import XCTest
-@testable import HornOKPleaseApp
+@testable import Chime4BreakfastApp
 
 final class ObserverPipelineTests: XCTestCase {
     func test_duplicate_fingerprint_is_ignored() {
@@ -657,13 +657,13 @@ final class ObserverPipelineTests: XCTestCase {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `xcodebuild test -scheme HornOKPlease -destination 'platform=macOS' -only-testing:HornOKPleaseTests/ObserverPipelineTests`
+Run: `xcodebuild test -scheme Chime4Breakfast -destination 'platform=macOS' -only-testing:Chime4BreakfastTests/ObserverPipelineTests`
 
 Expected: FAIL because `AppObserver` and `WindowSnapshot` do not exist.
 
 - [ ] **Step 3: Implement the observation pipeline**
 
-Create `Sources/HornOKPleaseApp/Models/TargetApp.swift` with:
+Create `Sources/Chime4BreakfastApp/Models/TargetApp.swift` with:
 
 ```swift
 enum TargetApp: String, Codable {
@@ -672,7 +672,7 @@ enum TargetApp: String, Codable {
 }
 ```
 
-Create `Sources/HornOKPleaseApp/Services/WindowObservation/WindowSnapshot.swift` with:
+Create `Sources/Chime4BreakfastApp/Services/WindowObservation/WindowSnapshot.swift` with:
 
 ```swift
 struct WindowSnapshot: Equatable {
@@ -682,7 +682,7 @@ struct WindowSnapshot: Equatable {
 }
 ```
 
-Create `Sources/HornOKPleaseApp/Services/WindowObservation/AppObserver.swift` with:
+Create `Sources/Chime4BreakfastApp/Services/WindowObservation/AppObserver.swift` with:
 
 ```swift
 import Foundation
@@ -706,7 +706,7 @@ final class AppObserver {
 }
 ```
 
-Create `Sources/HornOKPleaseApp/Services/WindowObservation/AccessibilityProbe.swift` as an integration layer that:
+Create `Sources/Chime4BreakfastApp/Services/WindowObservation/AccessibilityProbe.swift` as an integration layer that:
 
 - checks Accessibility trust state
 - locates Codex and Claude by bundle identifier
@@ -715,7 +715,7 @@ Create `Sources/HornOKPleaseApp/Services/WindowObservation/AccessibilityProbe.sw
 
 - [ ] **Step 4: Run tests to verify the pipeline passes**
 
-Run: `xcodebuild test -scheme HornOKPlease -destination 'platform=macOS' -only-testing:HornOKPleaseTests/ObserverPipelineTests`
+Run: `xcodebuild test -scheme Chime4Breakfast -destination 'platform=macOS' -only-testing:Chime4BreakfastTests/ObserverPipelineTests`
 
 Expected: PASS with `1 test, 0 failures`.
 
@@ -723,7 +723,7 @@ Expected: PASS with `1 test, 0 failures`.
 
 Modify the app so:
 
-- `HornOKPleaseApp` creates `ActivityStore`, `SoundEngine`, and `AppObserver`
+- `Chime4BreakfastApp` creates `ActivityStore`, `SoundEngine`, and `AppObserver`
 - `AppState` receives snapshots from `AccessibilityProbe`
 - classified events update the recent activity list and play the correct sound
 
@@ -733,8 +733,8 @@ Run:
 
 ```bash
 xcodegen generate
-xcodebuild test -scheme HornOKPlease -destination 'platform=macOS'
-xcodebuild -scheme HornOKPlease -destination 'platform=macOS' build
+xcodebuild test -scheme Chime4Breakfast -destination 'platform=macOS'
+xcodebuild -scheme Chime4Breakfast -destination 'platform=macOS' build
 ```
 
 Expected:
@@ -746,7 +746,7 @@ Expected:
 - [ ] **Step 7: Commit**
 
 ```bash
-git add Sources/HornOKPleaseApp Tests/HornOKPleaseTests
+git add Sources/Chime4BreakfastApp Tests/Chime4BreakfastTests
 git commit -m "feat(observer): connect accessibility watcher to alerts"
 ```
 
@@ -757,14 +757,14 @@ git commit -m "feat(observer): connect accessibility watcher to alerts"
 - Modify: `CHANGELOG.md`
 - Modify: `TODO.md`
 - Modify: `SECURITY.md`
-- Add: `Sources/HornOKPleaseApp/Resources/Sounds/*`
+- Add: `Sources/Chime4BreakfastApp/Resources/Sounds/*`
 
 - [ ] **Step 1: Add bundled sound assets**
 
 Add the 14 sound files referenced by `SoundOption.catalog` into:
 
 ```text
-Sources/HornOKPleaseApp/Resources/Sounds/
+Sources/Chime4BreakfastApp/Resources/Sounds/
 ```
 
 - [ ] **Step 2: Update the docs with real commands and constraints**
@@ -773,8 +773,8 @@ Document:
 
 - Accessibility permission setup
 - `xcodegen generate`
-- `xcodebuild test -scheme HornOKPlease -destination 'platform=macOS'`
-- `xcodebuild -scheme HornOKPlease -destination 'platform=macOS' build`
+- `xcodebuild test -scheme Chime4Breakfast -destination 'platform=macOS'`
+- `xcodebuild -scheme Chime4Breakfast -destination 'platform=macOS' build`
 - current v1 limitations
 
 - [ ] **Step 3: Run full verification**
@@ -783,8 +783,8 @@ Run:
 
 ```bash
 xcodegen generate
-xcodebuild test -scheme HornOKPlease -destination 'platform=macOS'
-xcodebuild -scheme HornOKPlease -destination 'platform=macOS' build
+xcodebuild test -scheme Chime4Breakfast -destination 'platform=macOS'
+xcodebuild -scheme Chime4Breakfast -destination 'platform=macOS' build
 ```
 
 Expected:
@@ -795,7 +795,7 @@ Expected:
 - [ ] **Step 4: Commit**
 
 ```bash
-git add Sources/HornOKPleaseApp/Resources README.md CHANGELOG.md TODO.md SECURITY.md
+git add Sources/Chime4BreakfastApp/Resources README.md CHANGELOG.md TODO.md SECURITY.md
 git commit -m "docs(app): finalize verification and product docs"
 ```
 

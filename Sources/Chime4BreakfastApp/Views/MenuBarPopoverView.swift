@@ -63,7 +63,7 @@ struct MenuBarPopoverView: View {
         GlassPanel {
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Horn OK Please")
+                    Text("Chime 4 Breakfast")
                         .font(.system(size: 24, weight: .semibold, design: .serif))
                         .foregroundStyle(.white)
                     Text(appState.statusTitle)

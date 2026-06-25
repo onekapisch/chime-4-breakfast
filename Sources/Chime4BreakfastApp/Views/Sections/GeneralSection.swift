@@ -13,7 +13,7 @@ struct GeneralSection: View {
                         Text("Launch at login")
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundStyle(.white)
-                        Text("Start Horn OK Please automatically after you sign in")
+                        Text("Start Chime 4 Breakfast automatically after you sign in")
                             .font(.system(size: 11))
                             .foregroundStyle(ColorTokens.fog.opacity(0.58))
                     }

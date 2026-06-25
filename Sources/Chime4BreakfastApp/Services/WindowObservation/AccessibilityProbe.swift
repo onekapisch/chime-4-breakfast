@@ -83,7 +83,7 @@ final class AccessibilityProbe: AccessibilityProbing {
     func captureDiagnostics(for apps: [TargetApp]) -> String {
         let timestamp = ISO8601DateFormatter().string(from: Date())
         var lines: [String] = [
-            "Horn OK Please — Detection Diagnostics",
+            "Chime 4 Breakfast — Detection Diagnostics",
             "Generated: \(timestamp)",
             "Accessibility trusted: \(AXIsProcessTrusted())",
             ""

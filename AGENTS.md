@@ -1,8 +1,8 @@
-# Horn OK Please Agent Guide
+# Chime 4 Breakfast Agent Guide
 
 ## Product
 
-Horn OK Please is a native macOS menu bar utility. It watches Codex desktop and Claude Desktop through the macOS Accessibility APIs, classifies finished assistant responses, and plays distinct sounds for normal completion versus attention-needed moments.
+Chime 4 Breakfast is a native macOS menu bar utility. It watches Codex desktop and Claude Desktop through the macOS Accessibility APIs, classifies finished assistant responses, and plays distinct sounds for normal completion versus attention-needed moments.
 
 ## Stack
 
@@ -14,13 +14,13 @@ Horn OK Please is a native macOS menu bar utility. It watches Codex desktop and 
 
 ## Architecture
 
-- `Sources/HornOKPleaseApp/App`: app lifecycle and shared state
-- `Sources/HornOKPleaseApp/Models`: small data types and enums
-- `Sources/HornOKPleaseApp/Services`: classification, audio, persistence
-- `Sources/HornOKPleaseApp/Services/WindowObservation`: Accessibility polling and window analysis
-- `Sources/HornOKPleaseApp/Support`: palette, glass surfaces, texture helpers
-- `Sources/HornOKPleaseApp/Views`: popover and section views
-- `Tests/HornOKPleaseTests`: unit tests for deterministic behavior
+- `Sources/Chime4BreakfastApp/App`: app lifecycle and shared state
+- `Sources/Chime4BreakfastApp/Models`: small data types and enums
+- `Sources/Chime4BreakfastApp/Services`: classification, audio, persistence
+- `Sources/Chime4BreakfastApp/Services/WindowObservation`: Accessibility polling and window analysis
+- `Sources/Chime4BreakfastApp/Support`: palette, glass surfaces, texture helpers
+- `Sources/Chime4BreakfastApp/Views`: popover and section views
+- `Tests/Chime4BreakfastTests`: unit tests for deterministic behavior
 
 ## Visual Direction
 
@@ -59,13 +59,13 @@ xcodegen generate
 Run tests:
 
 ```bash
-xcodebuild test -scheme HornOKPleaseApp -destination 'platform=macOS'
+xcodebuild test -scheme Chime4BreakfastApp -destination 'platform=macOS'
 ```
 
 Build the app:
 
 ```bash
-xcodebuild -scheme HornOKPleaseApp -destination 'platform=macOS' build
+xcodebuild -scheme Chime4BreakfastApp -destination 'platform=macOS' build
 ```
 
 ## Conventions

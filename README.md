@@ -1,6 +1,6 @@
-# Horn OK Please
+# Chime 4 Breakfast
 
-Horn OK Please is a native macOS menu bar utility for Codex desktop and Claude Desktop. It listens for finished assistant responses through the Accessibility layer and plays one sound for normal completions and another for messages that likely need your attention.
+Chime 4 Breakfast is a native macOS menu bar utility for Codex desktop and Claude Desktop. It listens for finished assistant responses through the Accessibility layer and plays one sound for normal completions and another for messages that likely need your attention.
 
 ## Features
 
@@ -28,18 +28,18 @@ xcodegen generate
 2. Open the generated project or build from the terminal:
 
 ```bash
-open HornOKPlease.xcodeproj
+open Chime4Breakfast.xcodeproj
 ```
 
-3. Grant Accessibility access to Horn OK Please when prompted.
+3. Grant Accessibility access to Chime 4 Breakfast when prompted.
 
 ## First Manual Test
 
 1. Run `xcodegen generate`.
-2. Open `HornOKPlease.xcodeproj` in Xcode.
-3. Select the `HornOKPleaseApp` scheme and run it.
-4. On first launch, allow the Accessibility prompt. If macOS does not surface it, use the `Open Accessibility` action from the popover and enable `Horn OK Please` manually.
-5. Look in the macOS menu bar for the Horn OK Please icon. This app runs as an agent utility, not a Dock app.
+2. Open `Chime4Breakfast.xcodeproj` in Xcode.
+3. Select the `Chime4BreakfastApp` scheme and run it.
+4. On first launch, allow the Accessibility prompt. If macOS does not surface it, use the `Open Accessibility` action from the popover and enable `Chime 4 Breakfast` manually.
+5. Look in the macOS menu bar for the Chime 4 Breakfast icon. This app runs as an agent utility, not a Dock app.
 6. Keep `Codex.app` or `Claude.app` open with a visible conversation window.
 7. Ask either assistant something short and wait for the response to settle.
 8. Confirm these signals:
@@ -53,13 +53,13 @@ open HornOKPlease.xcodeproj
 Run tests:
 
 ```bash
-xcodebuild test -scheme HornOKPleaseApp -destination 'platform=macOS'
+xcodebuild test -scheme Chime4BreakfastApp -destination 'platform=macOS'
 ```
 
 Build the app:
 
 ```bash
-xcodebuild -scheme HornOKPleaseApp -destination 'platform=macOS' build
+xcodebuild -scheme Chime4BreakfastApp -destination 'platform=macOS' build
 ```
 
 Build and launch the menu bar app:
@@ -86,7 +86,7 @@ Version 1 does not include:
 
 ## Accessibility
 
-Horn OK Please requires Accessibility permission to inspect UI text in supported desktop apps. The app does not transmit captured text anywhere. Recent activity remains local to the machine.
+Chime 4 Breakfast requires Accessibility permission to inspect UI text in supported desktop apps. The app does not transmit captured text anywhere. Recent activity remains local to the machine.
 
 ## Built App Location
 

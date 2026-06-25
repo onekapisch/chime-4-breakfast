@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct HornOKPleaseApp: App {
+struct Chime4BreakfastApp: App {
     @StateObject private var appState: AppState
 
     init() {
@@ -11,7 +11,7 @@ struct HornOKPleaseApp: App {
     }
 
     var body: some Scene {
-        MenuBarExtra("Horn OK Please", systemImage: appState.menuBarSymbolName) {
+        MenuBarExtra("Chime 4 Breakfast", systemImage: appState.menuBarSymbolName) {
             MenuBarPopoverView()
                 .environmentObject(appState)
         }

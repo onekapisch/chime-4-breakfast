@@ -1,5 +1,5 @@
 import XCTest
-@testable import HornOKPleaseApp
+@testable import Chime4BreakfastApp
 
 final class StabilityDetectorTests: XCTestCase {
     func test_emits_after_message_stops_changing() {

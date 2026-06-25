@@ -5,7 +5,7 @@ What does this change and why?
 ## Testing
 
 - [ ] `xcodegen generate`
-- [ ] `xcodebuild test -scheme HornOKPleaseApp -destination 'platform=macOS'`
+- [ ] `xcodebuild test -scheme Chime4BreakfastApp -destination 'platform=macOS'`
 - [ ] Manually verified the affected behavior in the running app
 
 ## Notes

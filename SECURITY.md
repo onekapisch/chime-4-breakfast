@@ -2,7 +2,7 @@
 
 ## Permissions
 
-Horn OK Please requires macOS Accessibility permission to read visible UI text from supported desktop apps. The app should request only the system permission needed to perform that task.
+Chime 4 Breakfast requires macOS Accessibility permission to read visible UI text from supported desktop apps. The app should request only the system permission needed to perform that task.
 
 ## Data Handling
 

@@ -117,7 +117,7 @@ final class AppState: ObservableObject {
         case .attention:
             return "The latest assistant response likely needs your input."
         case .permissionRequired:
-            return "Grant Accessibility access so Horn OK Please can inspect Codex and Claude."
+            return "Grant Accessibility access so Chime 4 Breakfast can inspect Codex and Claude."
         case .error:
             return "The watcher hit an unexpected error. Restart the app and try again."
         }
@@ -240,7 +240,7 @@ final class AppState: ObservableObject {
 
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyyMMdd-HHmmss"
-        let url = directory.appendingPathComponent("HornOKPlease-Diagnostics-\(formatter.string(from: Date())).txt")
+        let url = directory.appendingPathComponent("Chime4Breakfast-Diagnostics-\(formatter.string(from: Date())).txt")
 
         do {
             try report.write(to: url, atomically: true, encoding: .utf8)

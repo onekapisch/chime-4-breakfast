@@ -1,5 +1,5 @@
 import XCTest
-@testable import HornOKPleaseApp
+@testable import Chime4BreakfastApp
 
 final class SoundCatalogTests: XCTestCase {
     func test_catalog_contains_premium_sound_set() {

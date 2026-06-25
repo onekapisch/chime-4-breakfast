@@ -1,6 +1,6 @@
-# Contributing to Horn OK Please
+# Contributing to Chime 4 Breakfast
 
-Thanks for your interest in improving Horn OK Please.
+Thanks for your interest in improving Chime 4 Breakfast.
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ Thanks for your interest in improving Horn OK Please.
 
 ```bash
 xcodegen generate
-open HornOKPlease.xcodeproj
+open Chime4Breakfast.xcodeproj
 ```
 
 The `.xcodeproj` is generated and intentionally not committed — always run
@@ -23,8 +23,8 @@ The `.xcodeproj` is generated and intentionally not committed — always run
 Run the test suite and a build:
 
 ```bash
-xcodebuild test -scheme HornOKPleaseApp -destination 'platform=macOS'
-xcodebuild -scheme HornOKPleaseApp -destination 'platform=macOS' build
+xcodebuild test -scheme Chime4BreakfastApp -destination 'platform=macOS'
+xcodebuild -scheme Chime4BreakfastApp -destination 'platform=macOS' build
 ```
 
 CI runs the same checks on every pull request.
@@ -39,7 +39,7 @@ CI runs the same checks on every pull request.
 
 ## Reporting detection problems
 
-If Horn OK Please misses or misclassifies a response, open the popover,
+If Chime 4 Breakfast misses or misclassifies a response, open the popover,
 choose **Capture detection diagnostics**, and attach the generated file (it is
 written to your Desktop). It contains the raw Accessibility strings the watcher
 saw — no data leaves your machine unless you choose to share that file.

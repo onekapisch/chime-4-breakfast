@@ -1,4 +1,4 @@
-// Renders a 1024×1024 app icon master PNG for Horn OK Please using Core
+// Renders a 1024×1024 app icon master PNG for Chime 4 Breakfast using Core
 // Graphics only (runs headless). Usage: swift generate-app-icon.swift <out.png>
 import CoreGraphics
 import Foundation
