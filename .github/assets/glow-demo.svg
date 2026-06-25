@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1600" viewBox="0 0 1600 1600">
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#161620"/>
+      <stop offset="1" stop-color="#04040a"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#15151c"/>
+      <stop offset="1" stop-color="#0a0a10"/>
+    </linearGradient>
+    <linearGradient id="silver2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#EDEFF5"/>
+      <stop offset="1" stop-color="#9698a4"/>
+    </linearGradient>
+    <clipPath id="band2"><rect x="0" y="350" width="1600" height="900"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#band2)">
+    <rect x="0" y="350" width="1600" height="900" fill="url(#bg2)"/>
+
+    <text x="800" y="470" font-family="Georgia, 'Times New Roman', serif" font-size="54" font-weight="700" fill="#ffffff" text-anchor="middle">Your screen edges glow the second it&#8217;s done</text>
+    <text x="800" y="522" font-family="Helvetica, Arial, sans-serif" font-size="26" fill="#C8D2FF" fill-opacity="0.8" text-anchor="middle">One calm color for completion, a bolder one when it needs you &#8212; on every display.</text>
+
+    <!-- LEFT: completion (green) -->
+    <g>
+      <rect x="196" y="600" width="520" height="356" rx="34" fill="#30D158" fill-opacity="0.10"/>
+      <rect x="196" y="600" width="520" height="356" rx="34" fill="none" stroke="#30D158" stroke-opacity="0.28" stroke-width="26"/>
+      <rect x="196" y="600" width="520" height="356" rx="34" fill="none" stroke="#30D158" stroke-opacity="0.6" stroke-width="10"/>
+      <rect x="196" y="600" width="520" height="356" rx="34" fill="url(#screen)" stroke="#3be06a" stroke-opacity="0.95" stroke-width="3"/>
+      <g fill="url(#silver2)" opacity="0.92">
+        <rect x="402" y="752" width="16" height="52" rx="8"/>
+        <rect x="430" y="734" width="16" height="88" rx="8"/>
+        <rect x="458" y="720" width="16" height="116" rx="8"/>
+        <rect x="486" y="740" width="16" height="76" rx="8"/>
+      </g>
+      <text x="456" y="690" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="#7CF0A0" text-anchor="middle">Completion</text>
+      <text x="456" y="1010" font-family="Helvetica, Arial, sans-serif" font-size="24" fill="#C8D2FF" fill-opacity="0.78" text-anchor="middle">Done &#8212; a quick, calm pulse</text>
+    </g>
+
+    <!-- RIGHT: attention (red) -->
+    <g>
+      <rect x="884" y="600" width="520" height="356" rx="34" fill="#FF453A" fill-opacity="0.10"/>
+      <rect x="884" y="600" width="520" height="356" rx="34" fill="none" stroke="#FF453A" stroke-opacity="0.30" stroke-width="26"/>
+      <rect x="884" y="600" width="520" height="356" rx="34" fill="none" stroke="#FF453A" stroke-opacity="0.62" stroke-width="10"/>
+      <rect x="884" y="600" width="520" height="356" rx="34" fill="url(#screen)" stroke="#ff6a61" stroke-opacity="0.95" stroke-width="3"/>
+      <g fill="url(#silver2)" opacity="0.92">
+        <rect x="1090" y="752" width="16" height="52" rx="8"/>
+        <rect x="1118" y="734" width="16" height="88" rx="8"/>
+        <rect x="1146" y="720" width="16" height="116" rx="8"/>
+        <rect x="1174" y="740" width="16" height="76" rx="8"/>
+      </g>
+      <text x="1144" y="690" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="#FF9A8F" text-anchor="middle">Attention</text>
+      <text x="1144" y="1010" font-family="Helvetica, Arial, sans-serif" font-size="24" fill="#C8D2FF" fill-opacity="0.78" text-anchor="middle">A question or blocker &#8212; it keeps glowing</text>
+    </g>
+
+    <text x="800" y="1120" font-family="Helvetica, Arial, sans-serif" font-size="22" fill="#8b8fa3" text-anchor="middle">Colors are yours to pick. Sound is optional. Nothing leaves your Mac.</text>
+  </g>
+</svg>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1600" viewBox="0 0 1600 1600">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b1b22"/>
+      <stop offset="1" stop-color="#050507"/>
+    </linearGradient>
+    <linearGradient id="silver" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F6F7FB"/>
+      <stop offset="1" stop-color="#A7A9B4"/>
+    </linearGradient>
+    <radialGradient id="coral" gradientUnits="userSpaceOnUse" cx="320" cy="540" r="560">
+      <stop offset="0" stop-color="#FF4D5E" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#FF4D5E" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="magenta" gradientUnits="userSpaceOnUse" cx="1290" cy="540" r="560">
+      <stop offset="0" stop-color="#D946EF" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#D946EF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="blue" gradientUnits="userSpaceOnUse" cx="800" cy="1180" r="680">
+      <stop offset="0" stop-color="#4F7BFF" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#4F7BFF" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="band"><rect x="0" y="370" width="1600" height="860"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#band)">
+    <rect x="0" y="370" width="1600" height="860" fill="url(#bg)"/>
+    <rect x="0" y="370" width="1600" height="860" fill="url(#coral)"/>
+    <rect x="0" y="370" width="1600" height="860" fill="url(#magenta)"/>
+    <rect x="0" y="370" width="1600" height="860" fill="url(#blue)"/>
+
+    <!-- waveform mark -->
+    <g fill="url(#silver)">
+      <rect x="683" y="620" width="26" height="80"  rx="13"/>
+      <rect x="735" y="590" width="26" height="140" rx="13"/>
+      <rect x="787" y="565" width="26" height="190" rx="13"/>
+      <rect x="839" y="595" width="26" height="130" rx="13"/>
+      <rect x="891" y="615" width="26" height="90"  rx="13"/>
+    </g>
+
+    <text x="800" y="538" font-family="Helvetica, Arial, sans-serif" font-size="24" font-weight="700" letter-spacing="6" fill="#C8D2FF" fill-opacity="0.72" text-anchor="middle">MACOS MENU BAR UTILITY</text>
+
+    <text x="800" y="912" font-family="Georgia, 'Times New Roman', serif" font-size="98" font-weight="700" fill="#ffffff" text-anchor="middle">Chime 4 Breakfast</text>
+
+    <text x="800" y="978" font-family="Helvetica, Arial, sans-serif" font-size="33" fill="#C8D2FF" fill-opacity="0.9" text-anchor="middle">A sound and a glow the moment Codex or Claude finishes a response.</text>
+  </g>
+</svg>
