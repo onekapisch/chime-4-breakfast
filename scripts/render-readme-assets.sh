@@ -18,4 +18,9 @@ render() { # $1 = base name, $2 = content height
 render hero 860
 render glow-demo 900
 
-echo "Rendered hero.png + glow-demo.png in $DIR"
+# popover.svg is authored as a square canvas; crop only the side margins
+qlmanage -t -s 1240 -o . popover.svg >/dev/null 2>&1
+sips -c 1240 1040 popover.svg.png --out popover.png >/dev/null
+rm -f popover.svg.png
+
+echo "Rendered hero.png + glow-demo.png + popover.png in $DIR"

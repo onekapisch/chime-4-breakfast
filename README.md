@@ -25,6 +25,12 @@ You kick off a long task in Codex or Claude, switch to another window, and then�
 
 It's native, tiny, and lives in your menu bar. Everything happens on your Mac.
 
+<div align="center">
+<img src=".github/assets/popover.png" width="360" alt="The Chime 4 Breakfast menu bar popover" />
+<br/>
+<sub>Everything lives in one compact popover — apps, sounds, screen glow, rules, and a recent-activity log.</sub>
+</div>
+
 ## ✨ Why
 
 - **🔔 Never miss a finished response** — step away without babysitting the chat window.
