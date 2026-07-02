@@ -10,11 +10,11 @@ final class UserPreferencesTests: XCTestCase {
         XCTAssertTrue(preferences.watchClaude)
     }
 
-    func test_defaults_enable_glow_with_distinct_colors() {
+    func test_defaults_enable_glow() {
         let preferences = UserPreferences.defaultValue
 
         XCTAssertTrue(preferences.screenGlowEnabled)
-        XCTAssertNotEqual(preferences.completionGlowColorHex, preferences.attentionGlowColorHex)
+        XCTAssertEqual(preferences.glowIntensity, 1.0)
     }
 
     func test_decoding_missing_keys_falls_back_to_defaults() throws {
@@ -36,7 +36,7 @@ final class UserPreferencesTests: XCTestCase {
 
         XCTAssertFalse(decoded.watchCodex)
         XCTAssertTrue(decoded.screenGlowEnabled)
-        XCTAssertEqual(decoded.completionGlowColorHex, UserPreferences.defaultValue.completionGlowColorHex)
+        XCTAssertEqual(decoded.glowIntensity, UserPreferences.defaultValue.glowIntensity)
     }
 
     func test_quiet_hours_wrap_past_midnight() {
@@ -63,9 +63,7 @@ final class UserPreferencesTests: XCTestCase {
             quietHoursEnabled: true,
             quietHoursStartHour: 22,
             quietHoursEndHour: 8,
-            screenGlowEnabled: true,
-            completionGlowColorHex: "#30D158",
-            attentionGlowColorHex: "#FF453A"
+            screenGlowEnabled: true
         )
 
         XCTAssertTrue(preferences.quietHoursContains(lateNight, calendar: calendar))

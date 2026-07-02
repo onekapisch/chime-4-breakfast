@@ -13,7 +13,7 @@ struct RulesSection: View {
 
                 ToggleRow(
                     title: "Completion alerts",
-                    subtitle: "Play the soft sound when a response settles",
+                    subtitle: "Play the soft sound when a response finishes",
                     isOn: Binding(
                         get: { appState.preferences.completionAlertsEnabled },
                         set: { appState.setAlertsEnabled($0, for: .completion) }

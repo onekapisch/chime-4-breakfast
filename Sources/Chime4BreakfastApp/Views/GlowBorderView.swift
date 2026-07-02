@@ -10,8 +10,9 @@ final class GlowOverlayModel: ObservableObject {
     @Published var intensity: Double = 1.0
 }
 
-/// A soft luminous border drawn inset from the screen edges. Click-through and
-/// purely decorative; the hosting window handles event transparency.
+/// A soft ambient glow that hugs the screen edges and fades inward — no hard
+/// outline. Click-through and purely decorative; the hosting window handles
+/// event transparency.
 struct GlowBorderView: View {
     @ObservedObject var model: GlowOverlayModel
     @State private var pulseUp = false
@@ -19,20 +20,19 @@ struct GlowBorderView: View {
     var body: some View {
         GeometryReader { proxy in
             let radius = min(proxy.size.width, proxy.size.height) * 0.05
+            let bandWidth = min(max(min(proxy.size.width, proxy.size.height) * 0.10, 92), 150)
 
             ZStack {
-                border(radius: radius)
-                    .stroke(model.color, lineWidth: 28)
-                    .blur(radius: 34)
+                edgeBands(width: bandWidth)
 
                 border(radius: radius)
-                    .stroke(model.color, lineWidth: 10)
-                    .blur(radius: 9)
+                    .stroke(model.color.opacity(0.55), lineWidth: 14)
+                    .blur(radius: 18)
 
                 border(radius: radius)
-                    .stroke(model.color.opacity(0.95), lineWidth: 2.5)
+                    .stroke(model.color.opacity(0.85), lineWidth: 3)
+                    .blur(radius: 1.5)
             }
-            .padding(3)
             .opacity(currentOpacity)
             .animation(.easeOut(duration: 0.45), value: model.visible)
             .animation(.easeInOut(duration: 0.4), value: model.color)
@@ -47,9 +47,61 @@ struct GlowBorderView: View {
         RoundedRectangle(cornerRadius: radius, style: .continuous)
     }
 
+    private func edgeBands(width: CGFloat) -> some View {
+        ZStack {
+            VStack(spacing: 0) {
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [model.color.opacity(0.72), model.color.opacity(0.26), .clear],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(height: width)
+
+                Spacer(minLength: 0)
+
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [.clear, model.color.opacity(0.26), model.color.opacity(0.72)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(height: width)
+            }
+
+            HStack(spacing: 0) {
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [model.color.opacity(0.72), model.color.opacity(0.26), .clear],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: width)
+
+                Spacer(minLength: 0)
+
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [.clear, model.color.opacity(0.26), model.color.opacity(0.72)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: width)
+            }
+        }
+    }
+
     private var currentOpacity: Double {
         guard model.visible else { return 0 }
-        let base = model.pulsing ? (pulseUp ? 1.0 : 0.45) : 0.92
+        let base = model.pulsing ? (pulseUp ? 1.0 : 0.5) : 1.0
         return base * model.intensity
     }
 

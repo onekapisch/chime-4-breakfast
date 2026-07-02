@@ -1,34 +1,44 @@
 import AppKit
 import SwiftUI
 
-/// Drives a transparent, click-through overlay window on every screen and uses
-/// it to flash a luminous border when an assistant response is detected.
-///
-/// - Completion events flash briefly and auto-dismiss.
-/// - Attention events pulse and persist until explicitly dismissed (the user
-///   acknowledges, or the attention state times out).
 @MainActor
-final class ScreenGlowController {
+protocol ScreenGlowPresenting: AnyObject {
+    func flashCompletion(color: Color, intensity: Double)
+    func showAttention(color: Color, intensity: Double)
+    func preview(color: Color, intensity: Double)
+    func dismiss()
+}
+
+/// Drives a transparent, click-through overlay window on every screen and
+/// flashes a luminous edge cue when an assistant response is detected.
+@MainActor
+final class ScreenGlowController: ScreenGlowPresenting {
     private var windows: [NSWindow] = []
     private let model = GlowOverlayModel()
     private var autoDismissTask: Task<Void, Never>?
     private var teardownTask: Task<Void, Never>?
+    private let completionFlashDuration: TimeInterval = 3.4
+    private let attentionPulseDuration: TimeInterval = 5.2
+    private let previewFlashDuration: TimeInterval = 3.4
 
-    func flashCompletion(color: Color, intensity: Double = 1.0, duration: TimeInterval = 1.8) {
-        present(color: color, pulsing: false, intensity: intensity)
-        scheduleAutoDismiss(after: duration)
+    func flashCompletion(color: Color, intensity: Double) {
+        chimeDebugLog("GLOW completion.requested intensity=\(intensity)")
+        present(color: color, pulsing: false, intensity: max(intensity, 0.9))
+        scheduleAutoDismiss(after: completionFlashDuration)
     }
 
-    func showAttention(color: Color, intensity: Double = 1.0) {
-        present(color: color, pulsing: true, intensity: intensity)
-        autoDismissTask?.cancel()
-        autoDismissTask = nil
+    /// Attention pulses a little longer than a completion flash, but always
+    /// auto-dismisses — the glow is a nudge, never a lingering overlay.
+    func showAttention(color: Color, intensity: Double) {
+        chimeDebugLog("GLOW attention.requested intensity=\(intensity)")
+        present(color: color, pulsing: true, intensity: max(intensity, 0.85))
+        scheduleAutoDismiss(after: attentionPulseDuration)
     }
 
-    /// A self-dismissing attention pulse used by the preview button.
-    func previewAttention(color: Color, intensity: Double = 1.0, duration: TimeInterval = 2.6) {
-        present(color: color, pulsing: true, intensity: intensity)
-        scheduleAutoDismiss(after: duration)
+    func preview(color: Color, intensity: Double) {
+        chimeDebugLog("GLOW preview.requested intensity=\(intensity)")
+        present(color: color, pulsing: false, intensity: max(intensity, 0.9))
+        scheduleAutoDismiss(after: previewFlashDuration)
     }
 
     func dismiss() {
@@ -37,6 +47,7 @@ final class ScreenGlowController {
 
         guard !windows.isEmpty else { return }
 
+        chimeDebugLog("GLOW dismiss windows=\(windows.count)")
         model.visible = false
         teardownTask?.cancel()
         teardownTask = Task { @MainActor [weak self] in
@@ -63,10 +74,15 @@ final class ScreenGlowController {
             buildWindows()
         }
 
+        let clampedIntensity = min(max(intensity, 0.2), 1.0)
         model.color = color
         model.pulsing = pulsing
-        model.intensity = min(max(intensity, 0.2), 1.0)
+        model.intensity = clampedIntensity
         model.visible = false
+        let hexColor = color.hexString() ?? "unknown"
+        chimeDebugLog(
+            "GLOW present windows=\(windows.count) pulsing=\(pulsing) intensity=\(clampedIntensity) color=\(hexColor)"
+        )
 
         // Flip to visible on the next runloop so the opacity transition animates
         // from zero rather than snapping in.
@@ -106,6 +122,7 @@ final class ScreenGlowController {
 
             windows.append(window)
         }
+        chimeDebugLog("GLOW windows.built count=\(windows.count)")
     }
 
     private func teardownWindows() {
@@ -114,5 +131,6 @@ final class ScreenGlowController {
             window.close()
         }
         windows.removeAll()
+        chimeDebugLog("GLOW windows.teardown")
     }
 }

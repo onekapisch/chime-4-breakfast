@@ -8,13 +8,13 @@ struct ReadinessSection: View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .center, spacing: 10) {
                     Image(systemName: symbolName)
-                        .font(.system(size: 13, weight: .bold))
+                        .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(symbolColor)
-                        .frame(width: 28, height: 28)
-                        .background(symbolColor.opacity(0.14), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .frame(width: 30, height: 30)
+                        .background(symbolColor.opacity(0.14), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Ready To Test")
+                        Text("Watcher")
                             .font(.system(size: 11, weight: .bold))
                             .textCase(.uppercase)
                             .foregroundStyle(ColorTokens.fog.opacity(0.72))
@@ -30,20 +30,10 @@ struct ReadinessSection: View {
                     .foregroundStyle(ColorTokens.fog.opacity(0.84))
                     .fixedSize(horizontal: false, vertical: true)
 
-                VStack(alignment: .leading, spacing: 8) {
-                    ForEach(instructions, id: \.self) { instruction in
-                        HStack(alignment: .top, spacing: 10) {
-                            Circle()
-                                .fill(symbolColor.opacity(0.8))
-                                .frame(width: 6, height: 6)
-                                .padding(.top, 5)
-
-                            Text(instruction)
-                                .font(.system(size: 11))
-                                .foregroundStyle(ColorTokens.fog.opacity(0.78))
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
+                VStack(spacing: 8) {
+                    statusRow(title: "Accessibility", value: accessibilityValue, color: accessibilityColor)
+                    statusRow(title: "Targets", value: targetsValue, color: targetsColor)
+                    statusRow(title: "Trigger", value: triggerValue, color: symbolColor)
                 }
             }
         }
@@ -67,38 +57,66 @@ struct ReadinessSection: View {
     private var symbolColor: Color {
         switch appState.status {
         case .permissionRequired:
-            Color.orange
+            ColorTokens.accent
         case .attention:
-            ColorTokens.coral
+            ColorTokens.accent
         case .paused:
             ColorTokens.fog
         case .error:
-            Color.red.opacity(0.85)
+            ColorTokens.accent
         case .idle, .watching:
-            ColorTokens.blue
+            ColorTokens.accentSoft
         }
     }
 
-    private var instructions: [String] {
+    private var accessibilityValue: String {
+        appState.status == .permissionRequired ? "Required" : "Granted"
+    }
+
+    private var accessibilityColor: Color {
+        appState.status == .permissionRequired ? ColorTokens.magenta : ColorTokens.success
+    }
+
+    private var targetsValue: String {
+        let names = appState.runningApps.map(\.displayName).sorted()
+        guard !names.isEmpty else { return "Waiting" }
+        return names.joined(separator: " + ")
+    }
+
+    private var targetsColor: Color {
+        appState.runningApps.isEmpty ? ColorTokens.textMuted : ColorTokens.electricBlue
+    }
+
+    private var triggerValue: String {
         switch appState.status {
         case .permissionRequired:
-            [
-                "Click Open Accessibility and enable Chime 4 Breakfast in System Settings.",
-                "Keep Codex or Claude open on a conversation screen once permission is granted.",
-                "Wait for a finished assistant response and watch the Recent panel for the first detection."
-            ]
+            return "Blocked"
         case .paused:
-            [
-                "Resume watching from the footer button.",
-                "Keep Codex or Claude open on a conversation screen.",
-                "Wait for a finished assistant response and confirm the sound and Recent log."
-            ]
+            return "Paused"
         case .idle, .watching, .attention, .error:
-            [
-                "Keep Codex or Claude open on a conversation screen.",
-                "Send any prompt and let the assistant finish streaming a reply.",
-                "Confirm you hear the selected sound and see a new item in the Recent panel."
-            ]
+            return appState.runningApps.isEmpty ? "Standby" : "Armed"
         }
+    }
+
+    private func statusRow(title: String, value: String, color: Color) -> some View {
+        HStack(spacing: 10) {
+            Circle()
+                .fill(color)
+                .frame(width: 7, height: 7)
+
+            Text(title)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(ColorTokens.fog.opacity(0.72))
+
+            Spacer()
+
+            Text(value)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.92))
+                .lineLimit(1)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(Color.white.opacity(0.035), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 }

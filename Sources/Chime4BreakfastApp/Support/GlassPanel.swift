@@ -12,27 +12,53 @@ struct GlassPanel<Content: View>: View {
             .padding(14)
             .background(
                 ZStack {
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .fill(Color.black.opacity(0.28))
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .fill(.ultraThinMaterial.opacity(0.92))
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(Color.black.opacity(0.30))
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(.ultraThinMaterial.opacity(0.98))
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .fill(
                             LinearGradient(
                                 colors: [
-                                    ColorTokens.highlight,
+                                    Color.white.opacity(0.18),
+                                    Color.white.opacity(0.045),
                                     Color.clear
                                 ],
                                 startPoint: .top,
-                                endPoint: .center
+                                endPoint: .bottom
                             )
                         )
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(
+                            RadialGradient(
+                                colors: [
+                                    Color.white.opacity(0.11),
+                                    Color.clear
+                                ],
+                                center: UnitPoint(x: 0.22, y: 0.0),
+                                startRadius: 0,
+                                endRadius: 210
+                            )
+                        )
+                        .blendMode(.screen)
                 }
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .strokeBorder(ColorTokens.stroke, lineWidth: 1)
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.24),
+                                Color.white.opacity(0.07),
+                                Color.white.opacity(0.03)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ),
+                        lineWidth: 1
+                    )
             )
-            .shadow(color: ColorTokens.shadow, radius: 22, x: 0, y: 18)
+            .shadow(color: Color.black.opacity(0.42), radius: 24, x: 0, y: 18)
+            .shadow(color: Color.white.opacity(0.035), radius: 1, x: 0, y: 1)
     }
 }

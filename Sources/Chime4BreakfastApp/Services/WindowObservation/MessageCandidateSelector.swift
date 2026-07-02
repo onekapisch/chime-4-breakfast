@@ -1,6 +1,12 @@
 import Foundation
 
 struct MessageCandidateSelector {
+    private enum Speaker {
+        case assistant
+        case user
+        case unknown
+    }
+
     private let blockedPhrases = [
         "search",
         "new chat",
@@ -14,7 +20,20 @@ struct MessageCandidateSelector {
         "command k",
         "chatgpt",
         "claude desktop",
-        "codex"
+        "codex",
+        "send",
+        "stop",
+        "stop response",
+        "regenerate",
+        "retry",
+        "copy",
+        "edit",
+        "you",
+        "claude",
+        "reply to claude",
+        "how can i help",
+        "good response",
+        "bad response"
     ]
 
     func select(from rawStrings: [String]) -> String? {
@@ -27,15 +46,60 @@ struct MessageCandidateSelector {
                 }
             }
 
-        let candidates = cleaned
-            .enumerated()
-            .filter { isLikelyConversationText($0.element) }
+        var currentSpeaker = Speaker.unknown
+        var candidates: [(offset: Int, text: String, speaker: Speaker)] = []
 
-        guard !candidates.isEmpty else { return nil }
+        for (offset, text) in cleaned.enumerated() {
+            if let speaker = speakerLabel(for: text) {
+                currentSpeaker = speaker
+                continue
+            }
 
-        let total = max(cleaned.count, 1)
+            if isActionLabel(text) {
+                continue
+            }
 
-        return candidates.max(by: { score(for: $0.element, index: $0.offset, total: total) < score(for: $1.element, index: $1.offset, total: total) })?.element
+            guard isLikelyConversationText(text) else { continue }
+            candidates.append((offset: offset, text: text, speaker: currentSpeaker))
+        }
+
+        let assistantCandidates = candidates.filter { $0.speaker == .assistant }
+        if let latestAssistant = assistantCandidates.last {
+            return latestAssistant.text
+        }
+
+        let qualifying = candidates.map { (offset: $0.offset, element: $0.text) }
+        guard !qualifying.isEmpty else { return nil }
+
+        let midpoint = cleaned.count / 2
+        let recent = qualifying.filter { $0.offset >= midpoint }
+        let pool = recent.isEmpty ? qualifying : recent
+
+        return pool.max(by: { score(for: $0.element, index: $0.offset, total: cleaned.count) < score(for: $1.element, index: $1.offset, total: cleaned.count) })?.element
+    }
+
+    private func speakerLabel(for text: String) -> Speaker? {
+        switch text.lowercased() {
+        case "you", "user":
+            return .user
+        case "assistant", "claude", "codex", "chatgpt":
+            return .assistant
+        default:
+            return nil
+        }
+    }
+
+    private func isActionLabel(_ text: String) -> Bool {
+        let lowered = text.lowercased()
+        return [
+            "copy",
+            "edit",
+            "good response",
+            "bad response",
+            "retry",
+            "regenerate",
+            "reply to claude"
+        ].contains(lowered)
     }
 
     private func isLikelyConversationText(_ text: String) -> Bool {
@@ -56,12 +120,12 @@ struct MessageCandidateSelector {
     private func score(for text: String, index: Int, total: Int) -> Double {
         let lowered = text.lowercased()
         let words = text.split(separator: " ").count
-        let recency = Double(index + 1) / Double(total)
+        let recency = Double(index + 1) / Double(max(total, 1))
         let punctuationBonus = lowered.contains(".") || lowered.contains("?") || lowered.contains("!") || lowered.contains(":") ? 14.0 : 0.0
         let sentenceBonus = words >= 8 ? 10.0 : Double(words)
-        let lengthBonus = min(Double(text.count), 120.0) * 0.18
+        let lengthBonus = min(Double(text.count), 140.0) * 0.14
         let markdownBonus = lowered.contains("```") || lowered.contains("`") ? 6.0 : 0.0
-        let recencyBonus = recency * 20.0
+        let recencyBonus = recency * 24.0
 
         return punctuationBonus + sentenceBonus + lengthBonus + markdownBonus + recencyBonus
     }

@@ -11,8 +11,6 @@ struct UserPreferences: Codable, Equatable {
     var quietHoursStartHour: Int
     var quietHoursEndHour: Int
     var screenGlowEnabled: Bool
-    var completionGlowColorHex: String
-    var attentionGlowColorHex: String
     var notificationsEnabled: Bool = false
     var customAttentionPhrases: [String] = []
     var glowIntensity: Double = 1.0
@@ -28,8 +26,6 @@ struct UserPreferences: Codable, Equatable {
         quietHoursStartHour: 22,
         quietHoursEndHour: 8,
         screenGlowEnabled: true,
-        completionGlowColorHex: "#30D158",
-        attentionGlowColorHex: "#FF453A",
         notificationsEnabled: false,
         customAttentionPhrases: [],
         glowIntensity: 1.0
@@ -89,24 +85,6 @@ struct UserPreferences: Codable, Equatable {
         }
     }
 
-    func glowColorHex(for eventType: NotificationEventType) -> String {
-        switch eventType {
-        case .completion:
-            completionGlowColorHex
-        case .attention:
-            attentionGlowColorHex
-        }
-    }
-
-    mutating func setGlowColorHex(_ hex: String, for eventType: NotificationEventType) {
-        switch eventType {
-        case .completion:
-            completionGlowColorHex = hex
-        case .attention:
-            attentionGlowColorHex = hex
-        }
-    }
-
     func quietHoursContains(_ date: Date, calendar: Calendar = .current) -> Bool {
         guard quietHoursEnabled else { return false }
 
@@ -142,8 +120,6 @@ extension UserPreferences {
         quietHoursStartHour = try container.decodeIfPresent(Int.self, forKey: .quietHoursStartHour) ?? defaults.quietHoursStartHour
         quietHoursEndHour = try container.decodeIfPresent(Int.self, forKey: .quietHoursEndHour) ?? defaults.quietHoursEndHour
         screenGlowEnabled = try container.decodeIfPresent(Bool.self, forKey: .screenGlowEnabled) ?? defaults.screenGlowEnabled
-        completionGlowColorHex = try container.decodeIfPresent(String.self, forKey: .completionGlowColorHex) ?? defaults.completionGlowColorHex
-        attentionGlowColorHex = try container.decodeIfPresent(String.self, forKey: .attentionGlowColorHex) ?? defaults.attentionGlowColorHex
         notificationsEnabled = try container.decodeIfPresent(Bool.self, forKey: .notificationsEnabled) ?? defaults.notificationsEnabled
         customAttentionPhrases = try container.decodeIfPresent([String].self, forKey: .customAttentionPhrases) ?? defaults.customAttentionPhrases
         let decodedIntensity = try container.decodeIfPresent(Double.self, forKey: .glowIntensity) ?? defaults.glowIntensity

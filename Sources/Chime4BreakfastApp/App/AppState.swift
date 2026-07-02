@@ -26,10 +26,11 @@ final class AppState: ObservableObject {
     private let appObserver: AppObserver
     private let accessibilityProbe: any AccessibilityProbing
     private let accessibilityAuthorizer: any AccessibilityAuthorizing
-    private let screenGlowController: ScreenGlowController
+    private let screenGlowController: any ScreenGlowPresenting
     private let loginItemController: any LoginItemControlling
     private let notificationPresenter: NotificationPresenter
     private let classifier = MessageClassifier()
+    private var appColorCache: [TargetApp: Color] = [:]
     private var cancellables: Set<AnyCancellable> = []
     private var attentionResetTask: Task<Void, Never>?
     private var hasRequestedAccessibilityPrompt = false
@@ -41,7 +42,7 @@ final class AppState: ObservableObject {
         appObserver: AppObserver = AppObserver(),
         accessibilityProbe: any AccessibilityProbing = AccessibilityProbe(),
         accessibilityAuthorizer: any AccessibilityAuthorizing = AccessibilityAuthorizer(),
-        screenGlowController: ScreenGlowController = ScreenGlowController(),
+        screenGlowController: any ScreenGlowPresenting = ScreenGlowController(),
         loginItemController: any LoginItemControlling = LoginItemController(),
         notificationPresenter: NotificationPresenter = NotificationPresenter()
     ) {
@@ -193,12 +194,6 @@ final class AppState: ObservableObject {
         }
     }
 
-    func setGlowColor(_ color: Color, for eventType: NotificationEventType) {
-        guard let hex = color.hexString() else { return }
-        preferences.setGlowColorHex(hex, for: eventType)
-        preferencesStore.preferences = preferences
-    }
-
     func setNotificationsEnabled(_ enabled: Bool) {
         preferences.notificationsEnabled = enabled
         preferencesStore.preferences = preferences
@@ -260,14 +255,21 @@ final class AppState: ObservableObject {
         preferencesStore.preferences = preferences
     }
 
-    func previewGlow(for eventType: NotificationEventType) {
-        let color = glowColor(for: eventType)
-        switch eventType {
-        case .completion:
-            screenGlowController.flashCompletion(color: color, intensity: preferences.glowIntensity)
-        case .attention:
-            screenGlowController.previewAttention(color: color, intensity: preferences.glowIntensity)
+    func previewGlow() {
+        let app = Self.preferredPreviewApp(from: runningApps)
+        screenGlowController.preview(color: appGlowColor(for: app), intensity: preferences.glowIntensity)
+    }
+
+    static func preferredPreviewApp(from runningApps: Set<TargetApp>) -> TargetApp {
+        if runningApps.contains(.codex) {
+            return .codex
         }
+
+        if runningApps.contains(.claude) {
+            return .claude
+        }
+
+        return .codex
     }
 
     func pauseWatching() {
@@ -297,8 +299,52 @@ final class AppState: ObservableObject {
         status = .watching
     }
 
-    private func glowColor(for eventType: NotificationEventType) -> Color {
-        Color(hex: preferences.glowColorHex(for: eventType)) ?? eventType.accentColor
+    /// The glow color for an app = the dominant color of its Dock icon, so the
+    /// edge light matches the app that finished (Claude orange, Codex blue, …).
+    /// Computed once per app and cached.
+    private func appGlowColor(for app: TargetApp) -> Color {
+        if let cached = appColorCache[app] { return cached }
+        let fallbackHex = app == .claude ? "#F06139" : "#3025FF"
+        let color = Self.iconColor(forBundleID: app.bundleIdentifier) ?? Color(hex: fallbackHex) ?? .orange
+        appColorCache[app] = color
+        return color
+    }
+
+    private static func iconColor(forBundleID bundleID: String) -> Color? {
+        guard let icon = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first?.icon else {
+            return nil
+        }
+
+        let size = 24
+        guard let rep = NSBitmapImageRep(
+            bitmapDataPlanes: nil, pixelsWide: size, pixelsHigh: size,
+            bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+            colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+        ) else { return nil }
+
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+        icon.draw(in: NSRect(x: 0, y: 0, width: size, height: size))
+        NSGraphicsContext.restoreGraphicsState()
+
+        // Pick the most vivid (saturation × brightness) opaque pixel — that's the
+        // brand accent rather than the background.
+        var best = -1.0
+        var rgb = (0.0, 0.0, 0.0)
+        for x in 0..<size {
+            for y in 0..<size {
+                guard let pixel = rep.colorAt(x: x, y: y), pixel.alphaComponent > 0.6 else { continue }
+                let r = pixel.redComponent, g = pixel.greenComponent, b = pixel.blueComponent
+                let vivid = Double((max(r, g, b) - min(r, g, b)) * max(r, g, b))
+                if vivid > best {
+                    best = vivid
+                    rgb = (Double(r), Double(g), Double(b))
+                }
+            }
+        }
+
+        guard best >= 0 else { return nil }
+        return Color(.sRGB, red: rgb.0, green: rgb.1, blue: rgb.2, opacity: 1)
     }
 
     private func handle(snapshot: WindowSnapshot) {
@@ -316,6 +362,9 @@ final class AppState: ObservableObject {
         activityStore.append(item)
 
         let alertAllowed = preferences.alertsEnabled(for: observedEvent.eventType) && !preferences.quietHoursContains(Date())
+        chimeDebugLog(
+            "ALERT event=\(observedEvent.eventType.rawValue) allowed=\(alertAllowed) sound=\(preferences.soundID(for: observedEvent.eventType)) notifications=\(preferences.notificationsEnabled)"
+        )
 
         if alertAllowed {
             soundEngine.play(soundID: preferences.soundID(for: observedEvent.eventType))
@@ -328,12 +377,17 @@ final class AppState: ObservableObject {
             )
         }
 
-        if preferences.screenGlowEnabled {
+        // The glow exists to pull you back when you've stepped away while the
+        // app was working. If you watched it the whole time, the sound is enough.
+        chimeDebugLog("EVENT \(observedEvent.eventType.rawValue) src=\(observedEvent.sourceApp.rawValue) away=\(snapshot.userWasAway) glowEnabled=\(preferences.screenGlowEnabled)")
+
+        if preferences.screenGlowEnabled, snapshot.userWasAway {
+            let color = appGlowColor(for: observedEvent.sourceApp)
             switch observedEvent.eventType {
             case .completion:
-                screenGlowController.flashCompletion(color: glowColor(for: .completion), intensity: preferences.glowIntensity)
+                screenGlowController.flashCompletion(color: color, intensity: preferences.glowIntensity)
             case .attention:
-                screenGlowController.showAttention(color: glowColor(for: .attention), intensity: preferences.glowIntensity)
+                screenGlowController.showAttention(color: color, intensity: preferences.glowIntensity)
             }
         }
 

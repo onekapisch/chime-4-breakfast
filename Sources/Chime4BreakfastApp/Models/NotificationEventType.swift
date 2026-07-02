@@ -27,7 +27,7 @@ enum NotificationEventType: String, Codable, CaseIterable, Identifiable {
     var accentColor: Color {
         switch self {
         case .completion:
-            ColorTokens.blue
+            ColorTokens.electricBlue
         case .attention:
             ColorTokens.coral
         }

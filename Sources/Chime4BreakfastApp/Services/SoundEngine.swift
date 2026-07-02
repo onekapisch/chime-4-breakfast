@@ -1,33 +1,54 @@
 import AppKit
+import AVFoundation
 
 @MainActor
 final class SoundEngine {
-    private var activeSound: NSSound?
+    private var activePlayer: AVAudioPlayer?
 
-    func play(soundID: String) {
-        guard let option = SoundOption.option(for: soundID) else { return }
-
-        if let sound = loadBundledSound(named: option.filename) {
-            activeSound?.stop()
-            activeSound = sound
-            sound.play()
-            return
+    @discardableResult
+    func play(soundID: String) -> Bool {
+        guard let option = SoundOption.option(for: soundID) else {
+            chimeDebugLog("SOUND invalid id=\(soundID)")
+            return false
         }
 
-        NSSound.beep()
+        guard let url = bundledSoundURL(named: option.filename) else {
+            chimeDebugLog("SOUND missing filename=\(option.filename)")
+            NSSound.beep()
+            return false
+        }
+
+        do {
+            let player = try AVAudioPlayer(contentsOf: url)
+            player.volume = 1.0
+            player.prepareToPlay()
+
+            activePlayer?.stop()
+            activePlayer = player
+
+            let started = player.play()
+            chimeDebugLog(
+                "SOUND play id=\(soundID) file=\(url.lastPathComponent) started=\(started) duration=\(player.duration)"
+            )
+
+            if !started {
+                NSSound.beep()
+            }
+            return started
+        } catch {
+            chimeDebugLog("SOUND error id=\(soundID) file=\(url.lastPathComponent) error=\(error.localizedDescription)")
+            NSSound.beep()
+            return false
+        }
     }
 
-    private func loadBundledSound(named filename: String) -> NSSound? {
-        let path = filename.split(separator: ".")
-        guard path.count == 2 else { return nil }
+    private func bundledSoundURL(named filename: String) -> URL? {
+        let fileURL = URL(fileURLWithPath: filename)
+        let name = fileURL.deletingPathExtension().lastPathComponent
+        let ext = fileURL.pathExtension
+        guard !name.isEmpty, !ext.isEmpty else { return nil }
 
-        let name = String(path[0])
-        let ext = String(path[1])
-
-        guard let url = Bundle.main.url(forResource: name, withExtension: ext, subdirectory: "Sounds") else {
-            return nil
-        }
-
-        return NSSound(contentsOf: url, byReference: false)
+        return Bundle.main.url(forResource: name, withExtension: ext)
+            ?? Bundle.main.url(forResource: name, withExtension: ext, subdirectory: "Sounds")
     }
 }

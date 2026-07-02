@@ -30,17 +30,17 @@ struct GeneralSection: View {
                 Button {
                     appState.captureDiagnostics()
                 } label: {
-                    Label("Capture detection diagnostics", systemImage: "stethoscope")
+                    Label("Capture Diagnostics", systemImage: "waveform.path.ecg")
                         .font(.system(size: 12, weight: .medium))
                 }
-                .buttonStyle(.borderless)
-                .foregroundStyle(ColorTokens.fog.opacity(0.82))
+                .buttonStyle(.bordered)
+                .tint(ColorTokens.violet.opacity(0.72))
 
                 if !appState.recentActivity.isEmpty {
                     Button {
                         appState.clearRecentActivity()
                     } label: {
-                        Label("Clear recent activity", systemImage: "trash")
+                        Label("Clear Recent", systemImage: "trash")
                             .font(.system(size: 12, weight: .medium))
                     }
                     .buttonStyle(.borderless)
