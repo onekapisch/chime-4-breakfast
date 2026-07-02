@@ -123,6 +123,9 @@ extension UserPreferences {
         notificationsEnabled = try container.decodeIfPresent(Bool.self, forKey: .notificationsEnabled) ?? defaults.notificationsEnabled
         customAttentionPhrases = try container.decodeIfPresent([String].self, forKey: .customAttentionPhrases) ?? defaults.customAttentionPhrases
         let decodedIntensity = try container.decodeIfPresent(Double.self, forKey: .glowIntensity) ?? defaults.glowIntensity
-        glowIntensity = min(max(decodedIntensity, 0.5), 1.0)
+        // Values below 0.7 predate the visible-floor fix (old builds silently
+        // overrode the slider, leaving stale stored values like 0.2). Treat them
+        // as unset and restore full brightness.
+        glowIntensity = decodedIntensity < 0.7 ? 1.0 : min(decodedIntensity, 1.0)
     }
 }

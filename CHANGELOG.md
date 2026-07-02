@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-02 (night)
+
+- Found via live logs that glows WERE firing but at half brightness for half a second — invisible from another window: stale stored intensity values below 0.7 now migrate to full brightness, the fade-in is near-instant so the ~1 s dwell is fully visible, and edge bands got brighter
+- Scans are now wall-clock bounded (2.5 s full / 1.5 s cheap) with per-element AX timeouts, so a beachballing target app can no longer stall detection
+- Each app scans independently — a busy Codex can never delay Claude's finish detection (and vice versa)
+
 ## 2026-07-02 (evening)
 
 - Fixed missed alerts on rapid consecutive short replies: a confirmed Stop edge now always fires (identical-message dedup no longer swallows real completions like "hi" → "how are you"), with a 3-second debounce absorbing indicator flicker

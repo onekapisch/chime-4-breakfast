@@ -40,7 +40,7 @@ struct GlowSection: View {
                                 get: { appState.preferences.glowIntensity },
                                 set: { appState.setGlowIntensity($0) }
                             ),
-                            in: 0.5...1.0
+                            in: 0.7...1.0
                         )
                         .tint(ColorTokens.accent)
                     }

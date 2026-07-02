@@ -17,11 +17,11 @@ final class ScreenGlowController: ScreenGlowPresenting {
     private let model = GlowOverlayModel()
     private var autoDismissTask: Task<Void, Never>?
     private var teardownTask: Task<Void, Never>?
-    // The glow is a nudge, not an overlay: roughly one second on screen, then
-    // gone (plus the short fade-out).
-    private let completionFlashDuration: TimeInterval = 1.0
-    private let attentionPulseDuration: TimeInterval = 1.5
-    private let previewFlashDuration: TimeInterval = 1.2
+    // The glow is a nudge, not an overlay: about one fully-visible second
+    // (fade-in is near-instant), then a gentle fade-out.
+    private let completionFlashDuration: TimeInterval = 1.2
+    private let attentionPulseDuration: TimeInterval = 1.7
+    private let previewFlashDuration: TimeInterval = 1.5
 
     func flashCompletion(color: Color, intensity: Double) {
         chimeDebugLog("GLOW completion.requested intensity=\(intensity)")
@@ -76,9 +76,10 @@ final class ScreenGlowController: ScreenGlowPresenting {
             buildWindows()
         }
 
-        // 0.5 is the lowest clearly-visible level; the settings slider shares
-        // this floor so what you set is what you get.
-        let clampedIntensity = min(max(intensity, 0.5), 1.0)
+        // 0.7 is the lowest clearly-visible level for a ~1 s flash seen from
+        // another window; the settings slider shares this floor so what you set
+        // is what you get.
+        let clampedIntensity = min(max(intensity, 0.7), 1.0)
         model.color = color
         model.pulsing = pulsing
         model.intensity = clampedIntensity

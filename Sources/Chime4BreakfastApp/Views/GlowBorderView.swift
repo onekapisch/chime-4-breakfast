@@ -26,15 +26,17 @@ struct GlowBorderView: View {
                 edgeBands(width: bandWidth)
 
                 border(radius: radius)
-                    .stroke(model.color.opacity(0.55), lineWidth: 14)
+                    .stroke(model.color.opacity(0.7), lineWidth: 16)
                     .blur(radius: 18)
 
                 border(radius: radius)
-                    .stroke(model.color.opacity(0.85), lineWidth: 3)
+                    .stroke(model.color.opacity(0.95), lineWidth: 3.5)
                     .blur(radius: 1.5)
             }
             .opacity(currentOpacity)
-            .animation(.easeOut(duration: 0.45), value: model.visible)
+            // Snap in almost instantly so the ~1 s dwell is spent visible, not
+            // fading; ease out gently on dismiss.
+            .animation(.easeOut(duration: model.visible ? 0.1 : 0.4), value: model.visible)
             .animation(.easeInOut(duration: 0.4), value: model.color)
         }
         .ignoresSafeArea()
@@ -53,7 +55,7 @@ struct GlowBorderView: View {
                 Rectangle()
                     .fill(
                         LinearGradient(
-                            colors: [model.color.opacity(0.72), model.color.opacity(0.26), .clear],
+                            colors: [model.color.opacity(0.9), model.color.opacity(0.32), .clear],
                             startPoint: .top,
                             endPoint: .bottom
                         )
@@ -65,7 +67,7 @@ struct GlowBorderView: View {
                 Rectangle()
                     .fill(
                         LinearGradient(
-                            colors: [.clear, model.color.opacity(0.26), model.color.opacity(0.72)],
+                            colors: [.clear, model.color.opacity(0.32), model.color.opacity(0.9)],
                             startPoint: .top,
                             endPoint: .bottom
                         )
@@ -77,7 +79,7 @@ struct GlowBorderView: View {
                 Rectangle()
                     .fill(
                         LinearGradient(
-                            colors: [model.color.opacity(0.72), model.color.opacity(0.26), .clear],
+                            colors: [model.color.opacity(0.9), model.color.opacity(0.32), .clear],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
@@ -89,7 +91,7 @@ struct GlowBorderView: View {
                 Rectangle()
                     .fill(
                         LinearGradient(
-                            colors: [.clear, model.color.opacity(0.26), model.color.opacity(0.72)],
+                            colors: [.clear, model.color.opacity(0.32), model.color.opacity(0.9)],
                             startPoint: .leading,
                             endPoint: .trailing
                         )

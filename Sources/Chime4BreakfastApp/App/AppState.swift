@@ -251,7 +251,7 @@ final class AppState: ObservableObject {
     }
 
     func setGlowIntensity(_ intensity: Double) {
-        preferences.glowIntensity = min(max(intensity, 0.5), 1.0)
+        preferences.glowIntensity = min(max(intensity, 0.7), 1.0)
         preferencesStore.preferences = preferences
     }
 

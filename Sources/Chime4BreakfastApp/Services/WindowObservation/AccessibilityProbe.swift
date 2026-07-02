@@ -57,19 +57,27 @@ enum AXScan {
         AXUIElementSetMessagingTimeout(AXUIElementCreateSystemWide(), 1.0)
     }()
 
+    /// Hard wall-clock caps per scan. A beachballing Electron app slows every
+    /// AX message; bounding by time (not just node count) guarantees a scan can
+    /// never stall the watcher regardless of how slow the target is.
+    private static let fullScanTimeLimit: CFTimeInterval = 2.5
+    private static let generatingScanTimeLimit: CFTimeInterval = 1.5
+
     static func collectStrings(pid: pid_t) -> [String] {
         _ = configureGlobalTimeout
         let appElement = AXUIElementCreateApplication(pid)
+        AXUIElementSetMessagingTimeout(appElement, 0.5)
 
         // Ask Chromium/Electron to expose its full accessibility tree.
         AXUIElementSetAttributeValue(appElement, "AXManualAccessibility" as CFString, kCFBooleanTrue)
         AXUIElementSetAttributeValue(appElement, "AXEnhancedUserInterface" as CFString, kCFBooleanTrue)
 
+        let deadline = CFAbsoluteTimeGetCurrent() + fullScanTimeLimit
         var best: [String] = []
         for window in elementArray("AXWindows", of: appElement) ?? [] {
             var budget = maxBudget
             var strings: [String] = []
-            walk(window, depth: 0, budget: &budget, into: &strings)
+            walk(window, depth: 0, budget: &budget, deadline: deadline, into: &strings)
             if strings.count > best.count { best = strings }
         }
 
@@ -77,7 +85,7 @@ enum AXScan {
         if best.count < 5 {
             var budget = maxBudget
             var strings: [String] = []
-            walk(appElement, depth: 0, budget: &budget, into: &strings)
+            walk(appElement, depth: 0, budget: &budget, deadline: deadline, into: &strings)
             if strings.count > best.count { best = strings }
         }
 
@@ -90,19 +98,21 @@ enum AXScan {
     static func indicatesGenerating(pid: pid_t) -> Bool {
         _ = configureGlobalTimeout
         let appElement = AXUIElementCreateApplication(pid)
+        AXUIElementSetMessagingTimeout(appElement, 0.5)
 
         AXUIElementSetAttributeValue(appElement, "AXManualAccessibility" as CFString, kCFBooleanTrue)
         AXUIElementSetAttributeValue(appElement, "AXEnhancedUserInterface" as CFString, kCFBooleanTrue)
 
+        let deadline = CFAbsoluteTimeGetCurrent() + generatingScanTimeLimit
         for window in elementArray("AXWindows", of: appElement) ?? [] {
             var budget = maxGeneratingBudget
-            if walkForGenerating(window, depth: 0, budget: &budget) {
+            if walkForGenerating(window, depth: 0, budget: &budget, deadline: deadline) {
                 return true
             }
         }
 
         var budget = maxGeneratingBudget
-        return walkForGenerating(appElement, depth: 0, budget: &budget)
+        return walkForGenerating(appElement, depth: 0, budget: &budget, deadline: deadline)
     }
 
     static func indicatesGenerating(_ strings: [String]) -> Bool {
@@ -139,8 +149,8 @@ enum AXScan {
             || s.hasPrefix("stop streaming")
     }
 
-    private static func walk(_ element: AXUIElement, depth: Int, budget: inout Int, into out: inout [String]) {
-        guard depth < maxDepth, budget > 0 else { return }
+    private static func walk(_ element: AXUIElement, depth: Int, budget: inout Int, deadline: CFAbsoluteTime, into out: inout [String]) {
+        guard depth < maxDepth, budget > 0, CFAbsoluteTimeGetCurrent() < deadline else { return }
         budget -= 1
 
         for attribute in ["AXValue", "AXTitle", "AXDescription"] {
@@ -153,13 +163,13 @@ enum AXScan {
         for attribute in ["AXChildren", "AXRows", "AXContents"] {
             guard let children = elementArray(attribute, of: element) else { continue }
             for child in children {
-                walk(child, depth: depth + 1, budget: &budget, into: &out)
+                walk(child, depth: depth + 1, budget: &budget, deadline: deadline, into: &out)
             }
         }
     }
 
-    private static func walkForGenerating(_ element: AXUIElement, depth: Int, budget: inout Int) -> Bool {
-        guard depth < maxDepth, budget > 0 else { return false }
+    private static func walkForGenerating(_ element: AXUIElement, depth: Int, budget: inout Int, deadline: CFAbsoluteTime) -> Bool {
+        guard depth < maxDepth, budget > 0, CFAbsoluteTimeGetCurrent() < deadline else { return false }
         budget -= 1
 
         for attribute in ["AXValue", "AXTitle", "AXDescription"] {
@@ -170,7 +180,7 @@ enum AXScan {
 
         for attribute in ["AXChildren", "AXRows", "AXContents"] {
             guard let children = elementArray(attribute, of: element) else { continue }
-            for child in children where walkForGenerating(child, depth: depth + 1, budget: &budget) {
+            for child in children where walkForGenerating(child, depth: depth + 1, budget: &budget, deadline: deadline) {
                 return true
             }
         }
@@ -203,19 +213,20 @@ final class AccessibilityProbe: AccessibilityProbing {
     private var snapshotHandler: AccessibilitySnapshotHandler?
     private var statusHandler: AccessibilityStatusHandler?
     private var coalesceTask: Task<Void, Never>?
-    private var isExtracting = false
-    private var extractionStartedAt: Date?
-    private var scanSessionID = 0
+    // Each app scans independently, so a slow or hung app can never delay the
+    // other one's detection. Sessions invalidate in-flight results on restart.
+    private var extractingApps: [TargetApp: Date] = [:]
+    private var scanSessions: [TargetApp: Int] = [:]
     private var activityToken: NSObjectProtocol?
     private let classifier = MessageClassifier()
     private let selector = MessageCandidateSelector()
     private let finishDetector = FinishEdgeDetector()
 
     /// How long an in-flight scan may run before we assume the target app hung
-    /// an AX call and re-arm the scanner (stale results are discarded by
-    /// `scanSessionID`). With the 1 s messaging timeout this should never trip
-    /// in practice; it is a belt-and-braces guard against total silence.
-    private let extractionStallLimit: TimeInterval = 8
+    /// an AX call and re-arm the scanner (stale results are discarded by the
+    /// per-app session). Scans are wall-clock bounded to ~2.5 s, so this is a
+    /// belt-and-braces guard against total silence.
+    private let extractionStallLimit: TimeInterval = 6
 
     func start(
         watching apps: [TargetApp],
@@ -225,7 +236,7 @@ final class AccessibilityProbe: AccessibilityProbing {
         stop()
 
         watchedApps = apps
-        scanSessionID &+= 1
+        invalidateInFlightScans()
         finishDetector.reset(watching: apps)
         observerPIDs = [:]
         self.snapshotHandler = snapshotHandler
@@ -268,13 +279,11 @@ final class AccessibilityProbe: AccessibilityProbing {
     }
 
     func stop() {
-        scanSessionID &+= 1
+        invalidateInFlightScans()
         timer?.invalidate()
         timer = nil
         coalesceTask?.cancel()
         coalesceTask = nil
-        isExtracting = false
-        extractionStartedAt = nil
         endActivityIfNeeded()
         if let activationObserver {
             NSWorkspace.shared.notificationCenter.removeObserver(activationObserver)
@@ -328,12 +337,18 @@ final class AccessibilityProbe: AccessibilityProbing {
     }
 
     private func handleWorkspaceLifecycleEvent(name: Notification.Name) {
-        scanSessionID &+= 1
+        invalidateInFlightScans()
         coalesceTask?.cancel()
         coalesceTask = nil
-        isExtracting = false
         finishDetector.reset(watching: watchedApps)
         chimeDebugLog("probe.reset reason=\(name.rawValue)")
+    }
+
+    private func invalidateInFlightScans() {
+        for app in TargetApp.allCases {
+            scanSessions[app, default: 0] += 1
+        }
+        extractingApps.removeAll()
     }
 
     /// Event-driven away detection: the instant the user switches to another app
@@ -406,80 +421,68 @@ final class AccessibilityProbe: AccessibilityProbing {
         let running = Set(watchedApps.filter { !$0.runningApplications.isEmpty })
         statusHandler?(true, running)
 
-        if isExtracting {
-            // Watchdog: if a scan has hung past the stall limit (target app
-            // unresponsive), abandon it — the session bump discards its result.
-            if let startedAt = extractionStartedAt, Date().timeIntervalSince(startedAt) > extractionStallLimit {
-                chimeDebugLog("tick stalled scan abandoned after \(Int(extractionStallLimit))s")
-                scanSessionID &+= 1
-                isExtracting = false
-                extractionStartedAt = nil
-            } else {
-                return
-            }
-        }
-
         for app in Set(watchedApps).subtracting(running) {
             finishDetector.reset(app: app)
             removeObserver(for: app)
         }
 
-        var targets: [(TargetApp, pid_t)] = []
         for app in watchedApps {
             guard running.contains(app), let runningApp = app.runningApplications.first else { continue }
             installObserverIfNeeded(for: app, runningApp: runningApp)
-            targets.append((app, runningApp.processIdentifier))
+            beginScanIfIdle(app: app, pid: runningApp.processIdentifier)
+        }
+    }
+
+    /// Launches an independent, time-bounded scan for one app. Independence
+    /// matters: a busy Codex must never delay Claude's finish detection (and
+    /// vice versa).
+    private func beginScanIfIdle(app: TargetApp, pid: pid_t) {
+        if let startedAt = extractingApps[app] {
+            guard Date().timeIntervalSince(startedAt) > extractionStallLimit else { return }
+            chimeDebugLog("scan stalled app=\(app.rawValue) — abandoning")
+            scanSessions[app, default: 0] += 1
         }
 
-        guard !targets.isEmpty else { return }
-
-        isExtracting = true
-        extractionStartedAt = Date()
-        let scanSessionID = self.scanSessionID
+        extractingApps[app] = Date()
+        let session = scanSessions[app, default: 0]
         let selector = self.selector
 
         Task.detached(priority: .utility) {
-            var results: [(TargetApp, Bool, String?, String?)] = []
-            for (app, pid) in targets {
-                var generating = AXScan.indicatesGenerating(pid: pid)
-                var latest: String?
-                var tailKey: String?
+            var generating = AXScan.indicatesGenerating(pid: pid)
+            var latest: String?
+            var tailKey: String?
 
+            if !generating {
+                let strings = AXScan.collectStrings(pid: pid)
+                generating = AXScan.indicatesGenerating(strings)
                 if !generating {
-                    let strings = AXScan.collectStrings(pid: pid)
-                    generating = AXScan.indicatesGenerating(strings)
-                    if !generating {
-                        latest = selector.select(from: strings)
-                        tailKey = selector.tailKey(from: strings)
-                    }
+                    latest = selector.select(from: strings)
+                    tailKey = selector.tailKey(from: strings)
                 }
-
-                results.append((app, generating, latest, tailKey))
             }
+
             await MainActor.run { [weak self] in
-                guard let self, self.scanSessionID == scanSessionID else { return }
-                self.finishExtraction(results)
+                self?.finishScan(app: app, session: session, generating: generating, latest: latest, tailKey: tailKey)
             }
         }
     }
 
     /// Fires once per completed response, detected as the moment an app stops
     /// showing its Stop control (generating true→false), confirmed across one
-    /// extra tick to ignore flicker, and de-duplicated by message fingerprint.
-    private func finishExtraction(_ results: [(TargetApp, Bool, String?, String?)]) {
-        isExtracting = false
-        extractionStartedAt = nil
+    /// extra observation to ignore flicker, and rate-limited by the detector's
+    /// refire debounce.
+    private func finishScan(app: TargetApp, session: Int, generating: Bool, latest: String?, tailKey: String?) {
+        guard scanSessions[app, default: 0] == session else { return }
+        extractingApps[app] = nil
 
-        for (app, generating, latest, tailKey) in results {
-            guard let snapshot = finishDetector.process(
-                app: app,
-                generating: generating,
-                message: latest,
-                changeKey: tailKey,
-                isFrontmost: isFrontmost(app),
-                fingerprint: fingerprint
-            ) else { continue }
-
+        if let snapshot = finishDetector.process(
+            app: app,
+            generating: generating,
+            message: latest,
+            changeKey: tailKey,
+            isFrontmost: isFrontmost(app),
+            fingerprint: fingerprint
+        ) {
             chimeDebugLog("EMIT \(app.rawValue) away=\(snapshot.userWasAway)")
             snapshotHandler?(snapshot)
         }
@@ -488,7 +491,7 @@ final class AccessibilityProbe: AccessibilityProbing {
         // next poll — but once streaming stops, AX notifications stop too, so
         // never leave the sequence hostage to the slow timer: self-schedule the
         // follow-up while the detector is mid-flight.
-        if watchedApps.contains(where: { finishDetector.needsMessage(for: $0) }) {
+        if finishDetector.needsMessage(for: app) {
             scheduleCoalescedTick()
         }
     }
