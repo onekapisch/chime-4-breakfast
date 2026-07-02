@@ -78,6 +78,27 @@ struct MessageCandidateSelector {
         return pool.max(by: { score(for: $0.element, index: $0.offset, total: cleaned.count) < score(for: $1.element, index: $1.offset, total: cleaned.count) })?.element
     }
 
+    /// A change-detection key built from the tail of the transcript. Unlike the
+    /// single selected message (which can stay stuck on an older, longer reply
+    /// when new answers are short), the tail always changes when a new reply
+    /// appears, so fingerprints derived from it reliably distinguish
+    /// consecutive completions.
+    func tailKey(from rawStrings: [String]) -> String? {
+        let cleaned = rawStrings
+            .map { $0.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression).trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .reduce(into: [String]()) { result, next in
+                if result.last != next {
+                    result.append(next)
+                }
+            }
+
+        let qualifying = cleaned.filter { isLikelyConversationText($0) }
+        guard !qualifying.isEmpty else { return nil }
+
+        return qualifying.suffix(8).joined(separator: "\u{241E}")
+    }
+
     private func speakerLabel(for text: String) -> Speaker? {
         switch text.lowercased() {
         case "you", "user":

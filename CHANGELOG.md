@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-02 (evening)
+
+- Fixed missed alerts on rapid consecutive short replies: a confirmed Stop edge now always fires (identical-message dedup no longer swallows real completions like "hi" → "how are you"), with a 3-second debounce absorbing indicator flicker
+- Change detection now fingerprints the transcript tail instead of one selected message, so fast completions are recognized even when the selector picks the same candidate twice
+- Glow now lasts about one second (completion flash 1.0 s, attention pulse 1.5 s with a quicker pulse), per feedback
+
 ## 2026-07-02 (later)
 
 - Unified alert gating: quiet hours and the per-event toggle now mute sound, glow, and banners together, and "away" alone decides sound-only versus sound + glow — no more mismatched combinations that looked random

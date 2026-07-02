@@ -439,20 +439,22 @@ final class AccessibilityProbe: AccessibilityProbing {
         let selector = self.selector
 
         Task.detached(priority: .utility) {
-            var results: [(TargetApp, Bool, String?)] = []
+            var results: [(TargetApp, Bool, String?, String?)] = []
             for (app, pid) in targets {
                 var generating = AXScan.indicatesGenerating(pid: pid)
                 var latest: String?
+                var tailKey: String?
 
                 if !generating {
                     let strings = AXScan.collectStrings(pid: pid)
                     generating = AXScan.indicatesGenerating(strings)
                     if !generating {
                         latest = selector.select(from: strings)
+                        tailKey = selector.tailKey(from: strings)
                     }
                 }
 
-                results.append((app, generating, latest))
+                results.append((app, generating, latest, tailKey))
             }
             await MainActor.run { [weak self] in
                 guard let self, self.scanSessionID == scanSessionID else { return }
@@ -464,15 +466,16 @@ final class AccessibilityProbe: AccessibilityProbing {
     /// Fires once per completed response, detected as the moment an app stops
     /// showing its Stop control (generating true→false), confirmed across one
     /// extra tick to ignore flicker, and de-duplicated by message fingerprint.
-    private func finishExtraction(_ results: [(TargetApp, Bool, String?)]) {
+    private func finishExtraction(_ results: [(TargetApp, Bool, String?, String?)]) {
         isExtracting = false
         extractionStartedAt = nil
 
-        for (app, generating, latest) in results {
+        for (app, generating, latest, tailKey) in results {
             guard let snapshot = finishDetector.process(
                 app: app,
                 generating: generating,
                 message: latest,
+                changeKey: tailKey,
                 isFrontmost: isFrontmost(app),
                 fingerprint: fingerprint
             ) else { continue }

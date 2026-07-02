@@ -77,17 +77,36 @@ final class FinishEdgeDetectorTests: XCTestCase {
         XCTAssertEqual(snapshot?.userWasAway, true)
     }
 
-    func test_repeated_same_message_does_not_emit_twice() {
+    func test_consecutive_stop_edges_with_same_selected_message_both_emit() {
+        // Rapid short replies ("Hi." → "I'm good…") can select the same
+        // transcript candidate twice; each confirmed Stop edge is still a real
+        // completion and must alert.
         let detector = FinishEdgeDetector()
         detector.reset(watching: [.claude])
+        let start = Date()
 
-        _ = detector.process(app: .claude, generating: true, message: nil, isFrontmost: false, fingerprint: testFingerprint)
-        _ = detector.process(app: .claude, generating: false, message: "Same result.", isFrontmost: false, fingerprint: testFingerprint)
-        XCTAssertNotNil(detector.process(app: .claude, generating: false, message: "Same result.", isFrontmost: false, fingerprint: testFingerprint))
+        _ = detector.process(app: .claude, generating: true, message: nil, isFrontmost: false, now: start, fingerprint: testFingerprint)
+        _ = detector.process(app: .claude, generating: false, message: "Same result.", isFrontmost: false, now: start.addingTimeInterval(1), fingerprint: testFingerprint)
+        XCTAssertNotNil(detector.process(app: .claude, generating: false, message: "Same result.", isFrontmost: false, now: start.addingTimeInterval(2), fingerprint: testFingerprint))
 
-        _ = detector.process(app: .claude, generating: true, message: nil, isFrontmost: false, fingerprint: testFingerprint)
-        _ = detector.process(app: .claude, generating: false, message: "Same result.", isFrontmost: false, fingerprint: testFingerprint)
-        XCTAssertNil(detector.process(app: .claude, generating: false, message: "Same result.", isFrontmost: false, fingerprint: testFingerprint))
+        _ = detector.process(app: .claude, generating: true, message: nil, isFrontmost: false, now: start.addingTimeInterval(8), fingerprint: testFingerprint)
+        _ = detector.process(app: .claude, generating: false, message: "Same result.", isFrontmost: false, now: start.addingTimeInterval(9), fingerprint: testFingerprint)
+        XCTAssertNotNil(detector.process(app: .claude, generating: false, message: "Same result.", isFrontmost: false, now: start.addingTimeInterval(10), fingerprint: testFingerprint))
+    }
+
+    func test_stop_edge_flicker_within_debounce_does_not_double_fire() {
+        let detector = FinishEdgeDetector()
+        detector.reset(watching: [.claude])
+        let start = Date()
+
+        _ = detector.process(app: .claude, generating: true, message: nil, isFrontmost: false, now: start, fingerprint: testFingerprint)
+        _ = detector.process(app: .claude, generating: false, message: "Result.", isFrontmost: false, now: start.addingTimeInterval(0.5), fingerprint: testFingerprint)
+        XCTAssertNotNil(detector.process(app: .claude, generating: false, message: "Result.", isFrontmost: false, now: start.addingTimeInterval(1), fingerprint: testFingerprint))
+
+        // Indicator flickers back on and off within the debounce window.
+        _ = detector.process(app: .claude, generating: true, message: nil, isFrontmost: false, now: start.addingTimeInterval(1.5), fingerprint: testFingerprint)
+        _ = detector.process(app: .claude, generating: false, message: "Result.", isFrontmost: false, now: start.addingTimeInterval(2), fingerprint: testFingerprint)
+        XCTAssertNil(detector.process(app: .claude, generating: false, message: "Result.", isFrontmost: false, now: start.addingTimeInterval(2.5), fingerprint: testFingerprint))
     }
 
     func test_emits_fast_completion_when_message_changes_after_user_left_without_stop_edge() {

@@ -107,7 +107,7 @@ struct GlowBorderView: View {
 
     private func updatePulse(_ isPulsing: Bool) {
         if isPulsing {
-            withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
+            withAnimation(.easeInOut(duration: 0.4).repeatForever(autoreverses: true)) {
                 pulseUp = true
             }
         } else {

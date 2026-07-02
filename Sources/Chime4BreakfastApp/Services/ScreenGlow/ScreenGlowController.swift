@@ -17,9 +17,11 @@ final class ScreenGlowController: ScreenGlowPresenting {
     private let model = GlowOverlayModel()
     private var autoDismissTask: Task<Void, Never>?
     private var teardownTask: Task<Void, Never>?
-    private let completionFlashDuration: TimeInterval = 3.4
-    private let attentionPulseDuration: TimeInterval = 5.2
-    private let previewFlashDuration: TimeInterval = 3.4
+    // The glow is a nudge, not an overlay: roughly one second on screen, then
+    // gone (plus the short fade-out).
+    private let completionFlashDuration: TimeInterval = 1.0
+    private let attentionPulseDuration: TimeInterval = 1.5
+    private let previewFlashDuration: TimeInterval = 1.2
 
     func flashCompletion(color: Color, intensity: Double) {
         chimeDebugLog("GLOW completion.requested intensity=\(intensity)")
