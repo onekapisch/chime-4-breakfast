@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-02 (later)
+
+- Unified alert gating: quiet hours and the per-event toggle now mute sound, glow, and banners together, and "away" alone decides sound-only versus sound + glow — no more mismatched combinations that looked random
+- Every Recent entry now records what the app did and why (e.g. "Sound + glow", "Sound — you were in the app", "Muted — quiet hours") so any unexpected outcome is self-explaining
+- The glow intensity slider is now honest: the hidden 0.9 floor is gone and the slider range matches what is actually rendered
+- Notification banners only appear when you are away from the source app
+
 ## 2026-07-02
 
 - Fixed the biggest source of missed alerts: the poll timer now runs in the common run-loop mode (it used to stall while menus or the popover were open) and the app opts out of App Nap while monitoring, so background throttling can no longer delay or drop the finish edge

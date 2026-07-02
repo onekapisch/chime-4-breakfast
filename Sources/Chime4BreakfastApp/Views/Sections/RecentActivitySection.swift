@@ -61,6 +61,13 @@ struct RecentActivitySection: View {
                                         .font(.system(size: 11))
                                         .foregroundStyle(ColorTokens.fog.opacity(0.84))
                                         .lineLimit(3)
+
+                                    if let delivery = item.delivery {
+                                        Label(delivery, systemImage: deliverySymbol(for: delivery))
+                                            .font(.system(size: 10, weight: .medium))
+                                            .foregroundStyle(ColorTokens.fog.opacity(0.58))
+                                            .padding(.top, 1)
+                                    }
                                 }
                             }
                             .padding(10)
@@ -77,5 +84,11 @@ struct RecentActivitySection: View {
             .font(.system(size: 11, weight: .bold))
             .textCase(.uppercase)
             .foregroundStyle(ColorTokens.fog.opacity(0.72))
+    }
+
+    private func deliverySymbol(for delivery: String) -> String {
+        if delivery.hasPrefix("Muted") { return "moon.zzz.fill" }
+        if delivery.contains("glow is off") || delivery.contains("in the app") { return "speaker.wave.2.fill" }
+        return "sparkles"
     }
 }

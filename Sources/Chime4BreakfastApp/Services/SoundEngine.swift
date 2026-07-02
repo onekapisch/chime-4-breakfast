@@ -2,7 +2,13 @@ import AppKit
 import AVFoundation
 
 @MainActor
-final class SoundEngine {
+protocol SoundPlaying: AnyObject {
+    @discardableResult
+    func play(soundID: String) -> Bool
+}
+
+@MainActor
+final class SoundEngine: SoundPlaying {
     private var activePlayer: AVAudioPlayer?
 
     @discardableResult

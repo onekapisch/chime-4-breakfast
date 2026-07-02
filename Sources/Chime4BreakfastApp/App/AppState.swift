@@ -22,7 +22,7 @@ final class AppState: ObservableObject {
 
     private let preferencesStore: PreferencesStore
     private let activityStore: ActivityStore
-    private let soundEngine: SoundEngine
+    private let soundEngine: any SoundPlaying
     private let appObserver: AppObserver
     private let accessibilityProbe: any AccessibilityProbing
     private let accessibilityAuthorizer: any AccessibilityAuthorizing
@@ -38,7 +38,7 @@ final class AppState: ObservableObject {
     init(
         preferencesStore: PreferencesStore = PreferencesStore(),
         activityStore: ActivityStore = ActivityStore(),
-        soundEngine: SoundEngine = SoundEngine(),
+        soundEngine: any SoundPlaying = SoundEngine(),
         appObserver: AppObserver = AppObserver(),
         accessibilityProbe: any AccessibilityProbing = AccessibilityProbe(),
         accessibilityAuthorizer: any AccessibilityAuthorizing = AccessibilityAuthorizer(),
@@ -251,7 +251,7 @@ final class AppState: ObservableObject {
     }
 
     func setGlowIntensity(_ intensity: Double) {
-        preferences.glowIntensity = min(max(intensity, 0.2), 1.0)
+        preferences.glowIntensity = min(max(intensity, 0.5), 1.0)
         preferencesStore.preferences = preferences
     }
 
@@ -350,38 +350,58 @@ final class AppState: ObservableObject {
     private func handle(snapshot: WindowSnapshot) {
         guard let observedEvent = appObserver.process(snapshot, extraPhrases: preferences.customAttentionPhrases) else { return }
 
+        // One decision governs every output. Quiet hours and the per-event
+        // toggle mute EVERYTHING together; "away" then picks sound-only vs
+        // sound + glow. The chosen outcome is recorded on the activity item so
+        // the Recent list always explains what happened and why.
+        let quietHoursActive = preferences.quietHoursContains(Date())
+        let eventEnabled = preferences.alertsEnabled(for: observedEvent.eventType)
+        let away = snapshot.userWasAway
+
+        let playSound = eventEnabled && !quietHoursActive
+        let showGlow = playSound && away && preferences.screenGlowEnabled
+        let showBanner = playSound && away && preferences.notificationsEnabled
+
+        let delivery: String
+        if !eventEnabled {
+            delivery = "Muted — \(observedEvent.eventType.title.lowercased()) alerts are off"
+        } else if quietHoursActive {
+            delivery = "Muted — quiet hours"
+        } else if showGlow {
+            delivery = "Sound + glow"
+        } else if away {
+            delivery = "Sound — glow is off"
+        } else {
+            delivery = "Sound — you were in the app"
+        }
+
         let item = ActivityItem(
             id: UUID(),
             sourceApp: observedEvent.sourceApp,
             eventType: observedEvent.eventType,
             timestamp: Date(),
             excerpt: classifier.normalizedExcerpt(from: observedEvent.message),
-            fingerprint: observedEvent.fingerprint
+            fingerprint: observedEvent.fingerprint,
+            delivery: delivery
         )
 
         activityStore.append(item)
-
-        let alertAllowed = preferences.alertsEnabled(for: observedEvent.eventType) && !preferences.quietHoursContains(Date())
         chimeDebugLog(
-            "ALERT event=\(observedEvent.eventType.rawValue) allowed=\(alertAllowed) sound=\(preferences.soundID(for: observedEvent.eventType)) notifications=\(preferences.notificationsEnabled)"
+            "EVENT \(observedEvent.eventType.rawValue) src=\(observedEvent.sourceApp.rawValue) away=\(away) → \(delivery)"
         )
 
-        if alertAllowed {
+        if playSound {
             soundEngine.play(soundID: preferences.soundID(for: observedEvent.eventType))
         }
 
-        if alertAllowed, preferences.notificationsEnabled {
+        if showBanner {
             notificationPresenter.present(
                 title: "\(observedEvent.sourceApp.displayName) · \(observedEvent.eventType.title)",
                 body: item.excerpt
             )
         }
 
-        // The glow exists to pull you back when you've stepped away while the
-        // app was working. If you watched it the whole time, the sound is enough.
-        chimeDebugLog("EVENT \(observedEvent.eventType.rawValue) src=\(observedEvent.sourceApp.rawValue) away=\(snapshot.userWasAway) glowEnabled=\(preferences.screenGlowEnabled)")
-
-        if preferences.screenGlowEnabled, snapshot.userWasAway {
+        if showGlow {
             let color = appGlowColor(for: observedEvent.sourceApp)
             switch observedEvent.eventType {
             case .completion:

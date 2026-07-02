@@ -40,7 +40,7 @@ struct RulesSection: View {
 
                 ToggleRow(
                     title: "Quiet hours",
-                    subtitle: "Mute sounds while still keeping the activity log",
+                    subtitle: "Silence sound, glow, and banners on a schedule",
                     isOn: Binding(
                         get: { appState.preferences.quietHoursEnabled },
                         set: { appState.setQuietHoursEnabled($0) }

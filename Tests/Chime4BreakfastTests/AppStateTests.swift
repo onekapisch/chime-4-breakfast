@@ -56,7 +56,8 @@ final class AppStateTests: XCTestCase {
         let probe = TestAccessibilityProbe()
         let glow = TestScreenGlowPresenter()
         let state = AppState(
-            preferencesStore: quietPreferencesStore(),
+            preferencesStore: isolatedPreferencesStore(),
+            soundEngine: TestSoundPlayer(),
             accessibilityProbe: probe,
             accessibilityAuthorizer: TestAccessibilityAuthorizer(isTrusted: true),
             screenGlowController: glow
@@ -77,7 +78,8 @@ final class AppStateTests: XCTestCase {
         let probe = TestAccessibilityProbe()
         let glow = TestScreenGlowPresenter()
         let state = AppState(
-            preferencesStore: quietPreferencesStore(),
+            preferencesStore: isolatedPreferencesStore(),
+            soundEngine: TestSoundPlayer(),
             accessibilityProbe: probe,
             accessibilityAuthorizer: TestAccessibilityAuthorizer(isTrusted: true),
             screenGlowController: glow
@@ -110,7 +112,8 @@ final class AppStateTests: XCTestCase {
         let probe = TestAccessibilityProbe()
         let glow = TestScreenGlowPresenter()
         let state = AppState(
-            preferencesStore: quietPreferencesStore(),
+            preferencesStore: isolatedPreferencesStore(),
+            soundEngine: TestSoundPlayer(),
             accessibilityProbe: probe,
             accessibilityAuthorizer: TestAccessibilityAuthorizer(isTrusted: true),
             screenGlowController: glow
@@ -127,6 +130,58 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(glow.events, [])
     }
 
+    func test_disabled_alerts_mute_both_sound_and_glow() {
+        let probe = TestAccessibilityProbe()
+        let glow = TestScreenGlowPresenter()
+        let sound = TestSoundPlayer()
+        let state = AppState(
+            preferencesStore: isolatedPreferencesStore { preferences in
+                preferences.completionAlertsEnabled = false
+            },
+            soundEngine: sound,
+            accessibilityProbe: probe,
+            accessibilityAuthorizer: TestAccessibilityAuthorizer(isTrusted: true),
+            screenGlowController: glow
+        )
+
+        state.startMonitoringIfNeeded()
+        probe.emit(WindowSnapshot(
+            app: .codex,
+            message: "The implementation is complete and all checks pass.",
+            fingerprint: "codex-muted",
+            userWasAway: true
+        ))
+
+        XCTAssertEqual(glow.events, [])
+        XCTAssertEqual(sound.playedSoundIDs, [])
+        XCTAssertEqual(state.recentActivity.first?.delivery, "Muted — completion alerts are off")
+    }
+
+    func test_away_completion_plays_sound_and_glows_with_delivery_note() {
+        let probe = TestAccessibilityProbe()
+        let glow = TestScreenGlowPresenter()
+        let sound = TestSoundPlayer()
+        let state = AppState(
+            preferencesStore: isolatedPreferencesStore(),
+            soundEngine: sound,
+            accessibilityProbe: probe,
+            accessibilityAuthorizer: TestAccessibilityAuthorizer(isTrusted: true),
+            screenGlowController: glow
+        )
+
+        state.startMonitoringIfNeeded()
+        probe.emit(WindowSnapshot(
+            app: .codex,
+            message: "The implementation is complete and all checks pass.",
+            fingerprint: "codex-away",
+            userWasAway: true
+        ))
+
+        XCTAssertEqual(glow.events, [.completion])
+        XCTAssertEqual(sound.playedSoundIDs.count, 1)
+        XCTAssertEqual(state.recentActivity.first?.delivery, "Sound + glow")
+    }
+
     private func isolatedDefaults() -> UserDefaults {
         let name = "Chime4BreakfastTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: name)!
@@ -134,11 +189,10 @@ final class AppStateTests: XCTestCase {
         return defaults
     }
 
-    private func quietPreferencesStore() -> PreferencesStore {
+    private func isolatedPreferencesStore(mutate: (inout UserPreferences) -> Void = { _ in }) -> PreferencesStore {
         let store = PreferencesStore(defaults: isolatedDefaults())
         var preferences = UserPreferences.defaultValue
-        preferences.completionAlertsEnabled = false
-        preferences.attentionAlertsEnabled = false
+        mutate(&preferences)
         store.preferences = preferences
         return store
     }
@@ -184,6 +238,17 @@ private final class TestAccessibilityAuthorizer: AccessibilityAuthorizing {
 
     func requestPrompt() {
         requestPromptCallCount += 1
+    }
+}
+
+@MainActor
+private final class TestSoundPlayer: SoundPlaying {
+    private(set) var playedSoundIDs: [String] = []
+
+    @discardableResult
+    func play(soundID: String) -> Bool {
+        playedSoundIDs.append(soundID)
+        return true
     }
 }
 

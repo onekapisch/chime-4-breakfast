@@ -23,7 +23,7 @@ final class ScreenGlowController: ScreenGlowPresenting {
 
     func flashCompletion(color: Color, intensity: Double) {
         chimeDebugLog("GLOW completion.requested intensity=\(intensity)")
-        present(color: color, pulsing: false, intensity: max(intensity, 0.9))
+        present(color: color, pulsing: false, intensity: intensity)
         scheduleAutoDismiss(after: completionFlashDuration)
     }
 
@@ -31,13 +31,13 @@ final class ScreenGlowController: ScreenGlowPresenting {
     /// auto-dismisses — the glow is a nudge, never a lingering overlay.
     func showAttention(color: Color, intensity: Double) {
         chimeDebugLog("GLOW attention.requested intensity=\(intensity)")
-        present(color: color, pulsing: true, intensity: max(intensity, 0.85))
+        present(color: color, pulsing: true, intensity: intensity)
         scheduleAutoDismiss(after: attentionPulseDuration)
     }
 
     func preview(color: Color, intensity: Double) {
         chimeDebugLog("GLOW preview.requested intensity=\(intensity)")
-        present(color: color, pulsing: false, intensity: max(intensity, 0.9))
+        present(color: color, pulsing: false, intensity: intensity)
         scheduleAutoDismiss(after: previewFlashDuration)
     }
 
@@ -74,7 +74,9 @@ final class ScreenGlowController: ScreenGlowPresenting {
             buildWindows()
         }
 
-        let clampedIntensity = min(max(intensity, 0.2), 1.0)
+        // 0.5 is the lowest clearly-visible level; the settings slider shares
+        // this floor so what you set is what you get.
+        let clampedIntensity = min(max(intensity, 0.5), 1.0)
         model.color = color
         model.pulsing = pulsing
         model.intensity = clampedIntensity

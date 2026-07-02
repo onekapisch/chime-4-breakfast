@@ -123,6 +123,6 @@ extension UserPreferences {
         notificationsEnabled = try container.decodeIfPresent(Bool.self, forKey: .notificationsEnabled) ?? defaults.notificationsEnabled
         customAttentionPhrases = try container.decodeIfPresent([String].self, forKey: .customAttentionPhrases) ?? defaults.customAttentionPhrases
         let decodedIntensity = try container.decodeIfPresent(Double.self, forKey: .glowIntensity) ?? defaults.glowIntensity
-        glowIntensity = min(max(decodedIntensity, 0.2), 1.0)
+        glowIntensity = min(max(decodedIntensity, 0.5), 1.0)
     }
 }
