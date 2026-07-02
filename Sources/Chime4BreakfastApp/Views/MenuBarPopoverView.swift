@@ -6,150 +6,92 @@ struct MenuBarPopoverView: View {
 
     var body: some View {
         ZStack {
-            backgroundArtwork
-            NoiseTexture()
+            LinearGradient(
+                colors: [ColorTokens.baseElevated, ColorTokens.base],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
 
-            ScrollView {
-                VStack(spacing: 12) {
-                    header
-                    ReadinessSection()
-                    AppToggleSection()
-                    SoundSection()
-                    GlowSection()
-                    RulesSection()
-                    RecentActivitySection()
-                    GeneralSection()
-                    utilityRow
+            VStack(spacing: 0) {
+                header
+                    .padding(.horizontal, 14)
+                    .padding(.top, 12)
+                    .padding(.bottom, 10)
+
+                Rectangle()
+                    .fill(Color.white.opacity(0.06))
+                    .frame(height: 1)
+
+                ScrollView {
+                    VStack(spacing: 14) {
+                        StatusBanner()
+                        AppToggleSection()
+                        SoundSection()
+                        GlowSection()
+                        RulesSection()
+                        RecentActivitySection()
+                    }
+                    .padding(12)
+                    .animation(.smooth(duration: 0.26), value: appState.status)
+                    .animation(.smooth(duration: 0.26), value: appState.runningApps)
                 }
-                .padding(12)
-                .animation(.smooth(duration: 0.26), value: appState.status)
-                .animation(.smooth(duration: 0.26), value: appState.runningApps)
+                .scrollIndicators(.hidden)
+
+                Rectangle()
+                    .fill(Color.white.opacity(0.06))
+                    .frame(height: 1)
+
+                footer
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 9)
             }
-            .scrollIndicators(.hidden)
         }
-        .frame(width: 360, height: 620)
+        .frame(width: 360, height: 600)
         .preferredColorScheme(.dark)
         .onAppear {
             appState.acknowledgeAttention()
         }
     }
 
-    private var backgroundArtwork: some View {
-        ZStack {
-            LinearGradient(
-                colors: [
-                    ColorTokens.baseElevated,
-                    ColorTokens.base,
-                    Color.black
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-
-            RadialGradient(
-                colors: [ColorTokens.electricBlue.opacity(0.24), .clear],
-                center: UnitPoint(x: 0.12, y: 0.08),
-                startRadius: 12,
-                endRadius: 280
-            )
-
-            RadialGradient(
-                colors: [ColorTokens.coral.opacity(0.16), .clear],
-                center: UnitPoint(x: 0.92, y: 0.18),
-                startRadius: 24,
-                endRadius: 300
-            )
-
-            LinearGradient(
-                colors: [.clear, Color.black.opacity(0.24)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        }
-        .ignoresSafeArea()
-    }
+    // MARK: Header
 
     private var header: some View {
-        GlassPanel {
-            VStack(alignment: .leading, spacing: 14) {
-                HStack(alignment: .top, spacing: 12) {
-                    appIcon
+        HStack(spacing: 9) {
+            Image(nsImage: NSApp.applicationIconImage)
+                .resizable()
+                .interpolation(.high)
+                .frame(width: 26, height: 26)
+                .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Chime 4 Breakfast")
-                            .font(.system(size: 23, weight: .semibold, design: .serif))
-                            .foregroundStyle(.white)
-                        Text(appState.statusTitle)
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(statusTint)
-                        Text(appState.statusDetail)
-                            .font(.system(size: 11))
-                            .foregroundStyle(ColorTokens.fog.opacity(0.72))
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
+            Text("Chime 4 Breakfast")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.white)
 
-                    Spacer(minLength: 0)
-                }
+            Spacer(minLength: 8)
 
-                HStack(spacing: 8) {
-                    statusChip
-
-                    if !appState.runningApps.isEmpty {
-                        Text(activeAppsSummary)
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(ColorTokens.fog.opacity(0.78))
-                            .lineLimit(1)
-                    }
-
-                    Spacer(minLength: 0)
-                }
-            }
+            statusChip
         }
-    }
-
-    private var appIcon: some View {
-        Image(nsImage: NSApp.applicationIconImage)
-            .resizable()
-            .interpolation(.high)
-            .frame(width: 48, height: 48)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay(alignment: .bottomTrailing) {
-                ZStack {
-                    Circle()
-                        .fill(ColorTokens.base.opacity(0.96))
-                        .frame(width: 21, height: 21)
-                    Image(systemName: appState.menuBarSymbolName)
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundStyle(statusTint)
-                }
-                .overlay(
-                    Circle()
-                        .strokeBorder(Color.white.opacity(0.16), lineWidth: 1)
-                )
-                .offset(x: 4, y: 4)
-            }
-            .shadow(color: statusTint.opacity(0.24), radius: 16, x: 0, y: 10)
     }
 
     private var statusChip: some View {
-        Label {
-            Text(statusChipTitle)
-        } icon: {
+        HStack(spacing: 5) {
             Circle()
                 .fill(statusTint)
-                .frame(width: 7, height: 7)
+                .frame(width: 6, height: 6)
+            Text(statusChipTitle)
+                .font(.system(size: 10.5, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.85))
         }
-        .font(.system(size: 11, weight: .semibold))
-        .padding(.horizontal, 10)
-        .padding(.vertical, 7)
-        .background(statusChipBackground, in: Capsule())
-        .overlay(
-            Capsule()
-                .strokeBorder(Color.white.opacity(0.10), lineWidth: 1)
-        )
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4.5)
+        .background(Color.white.opacity(0.07), in: Capsule())
+        .overlay(Capsule().strokeBorder(Color.white.opacity(0.08), lineWidth: 1))
     }
 
-    private var utilityRow: some View {
+    // MARK: Footer
+
+    private var footer: some View {
         HStack(spacing: 10) {
             Button {
                 if appState.status == .paused {
@@ -162,26 +104,37 @@ struct MenuBarPopoverView: View {
                     appState.status == .paused ? "Resume" : "Pause",
                     systemImage: appState.status == .paused ? "play.fill" : "pause.fill"
                 )
-                .font(.system(size: 12, weight: .semibold))
+                .font(.system(size: 11, weight: .medium))
             }
-            .buttonStyle(.borderedProminent)
-            .tint(Color.white.opacity(0.14))
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+
+            Button {
+                appState.captureDiagnostics()
+            } label: {
+                Image(systemName: "stethoscope")
+                    .font(.system(size: 10.5, weight: .medium))
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .help("Capture detection diagnostics to the Desktop")
 
             Spacer()
 
-            if appState.status == .permissionRequired {
-                Button {
-                    appState.openAccessibilitySettings()
-                } label: {
-                    Label("Accessibility", systemImage: "switch.2")
-                        .font(.system(size: 12, weight: .semibold))
-                }
-                .buttonStyle(.borderless)
-                .foregroundStyle(ColorTokens.fog)
+            Toggle(isOn: Binding(
+                get: { appState.launchAtLoginEnabled },
+                set: { appState.setLaunchAtLogin($0) }
+            )) {
+                Text("Open at login")
+                    .font(.system(size: 10.5, weight: .medium))
+                    .foregroundStyle(ColorTokens.fog.opacity(0.75))
             }
+            .toggleStyle(.checkbox)
+            .controlSize(.mini)
         }
-        .padding(.top, 2)
     }
+
+    // MARK: Status
 
     private var statusChipTitle: String {
         switch appState.status {
@@ -192,26 +145,11 @@ struct MenuBarPopoverView: View {
         case .paused:
             "Paused"
         case .attention:
-            "Alert"
+            "Attention"
         case .permissionRequired:
-            "Permission"
+            "No access"
         case .error:
             "Error"
-        }
-    }
-
-    private var statusChipBackground: AnyShapeStyle {
-        switch appState.status {
-        case .attention:
-            AnyShapeStyle(ColorTokens.coral.opacity(0.22))
-        case .watching:
-            AnyShapeStyle(ColorTokens.electricBlue.opacity(0.18))
-        case .permissionRequired, .error:
-            AnyShapeStyle(ColorTokens.magenta.opacity(0.18))
-        case .paused:
-            AnyShapeStyle(Color.white.opacity(0.07))
-        case .idle:
-            AnyShapeStyle(Color.white.opacity(0.07))
         }
     }
 
@@ -220,25 +158,11 @@ struct MenuBarPopoverView: View {
         case .attention:
             ColorTokens.coral
         case .watching:
-            appState.runningApps.isEmpty ? ColorTokens.fog : ColorTokens.electricBlue
+            appState.runningApps.isEmpty ? ColorTokens.fog.opacity(0.6) : ColorTokens.success
         case .permissionRequired, .error:
-            ColorTokens.magenta
-        case .paused:
-            ColorTokens.textMuted
-        case .idle:
-            ColorTokens.fog
-        }
-    }
-
-    private var activeAppsSummary: String {
-        let names = appState.runningApps.map(\.displayName).sorted()
-        switch names.count {
-        case 0:
-            return ""
-        case 1:
-            return "\(names[0]) is open"
-        default:
-            return "\(names.joined(separator: " + ")) are open"
+            ColorTokens.coral
+        case .paused, .idle:
+            ColorTokens.fog.opacity(0.6)
         }
     }
 }

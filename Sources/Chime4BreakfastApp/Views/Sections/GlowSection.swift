@@ -4,92 +4,44 @@ struct GlowSection: View {
     @EnvironmentObject private var appState: AppState
 
     var body: some View {
-        GlassPanel {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 10) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        sectionHeader("Screen Glow")
-                        Text("App-colored edge light when a watched response finishes away from you")
-                            .font(.system(size: 11))
-                            .foregroundStyle(ColorTokens.fog.opacity(0.58))
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
+        SectionBlock("Screen Glow", trailing: AnyView(previewButton)) {
+            CompactRow(
+                title: "Glow when you're away",
+                subtitle: "Edge light in the app's color, about a second"
+            ) {
+                MiniToggle(isOn: Binding(
+                    get: { appState.preferences.screenGlowEnabled },
+                    set: { appState.setScreenGlowEnabled($0) }
+                ))
+            }
 
-                    Spacer()
+            if appState.preferences.screenGlowEnabled {
+                RowDivider()
 
-                    Toggle("", isOn: Binding(
-                        get: { appState.preferences.screenGlowEnabled },
-                        set: { appState.setScreenGlowEnabled($0) }
-                    ))
-                    .labelsHidden()
-                }
-
-                if appState.preferences.screenGlowEnabled {
-                    HStack(spacing: 8) {
-                        GlowModeChip(title: "Completion", subtitle: "App-color flash")
-                        GlowModeChip(title: "Attention", subtitle: "App-color pulse")
-                    }
-
-                    HStack(spacing: 10) {
-                        Text("Intensity")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(ColorTokens.fog.opacity(0.82))
-
-                        Slider(
-                            value: Binding(
-                                get: { appState.preferences.glowIntensity },
-                                set: { appState.setGlowIntensity($0) }
-                            ),
-                            in: 0.7...1.0
-                        )
-                        .tint(ColorTokens.accent)
-                    }
-
-                    Button {
-                        appState.previewGlow()
-                    } label: {
-                        Label("Preview", systemImage: "sparkles")
-                            .font(.system(size: 12, weight: .medium))
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(ColorTokens.electricBlue.opacity(0.72))
+                CompactRow(title: "Intensity") {
+                    Slider(
+                        value: Binding(
+                            get: { appState.preferences.glowIntensity },
+                            set: { appState.setGlowIntensity($0) }
+                        ),
+                        in: 0.7...1.0
+                    )
+                    .controlSize(.small)
+                    .frame(width: 132)
                 }
             }
         }
     }
 
-    private func sectionHeader(_ title: String) -> some View {
-        Text(title)
-            .font(.system(size: 11, weight: .bold))
-            .textCase(.uppercase)
-            .foregroundStyle(ColorTokens.fog.opacity(0.72))
-    }
-}
-
-private struct GlowModeChip: View {
-    let title: String
-    let subtitle: String
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Circle()
-                .fill(ColorTokens.fog.opacity(0.82))
-                .frame(width: 8, height: 8)
-
-            VStack(alignment: .leading, spacing: 1) {
-                Text(title)
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.white)
-                Text(subtitle)
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(ColorTokens.fog.opacity(0.58))
-            }
-
-            Spacer(minLength: 0)
+    private var previewButton: some View {
+        Button {
+            appState.previewGlow()
+        } label: {
+            Label("Preview", systemImage: "sparkles")
+                .font(.system(size: 10, weight: .medium))
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .frame(maxWidth: .infinity)
-        .background(Color.white.opacity(0.035), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .buttonStyle(.borderless)
+        .foregroundStyle(ColorTokens.fog.opacity(0.8))
+        .disabled(!appState.preferences.screenGlowEnabled)
     }
 }

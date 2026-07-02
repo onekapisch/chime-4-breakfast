@@ -1,122 +1,76 @@
 import SwiftUI
 
-struct ReadinessSection: View {
+/// A contextual banner that only appears when something needs the user:
+/// missing Accessibility permission, paused monitoring, or a watcher error.
+/// In the healthy state it renders nothing — the header chip already says
+/// "Watching".
+struct StatusBanner: View {
     @EnvironmentObject private var appState: AppState
 
     var body: some View {
-        GlassPanel {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(alignment: .center, spacing: 10) {
-                    Image(systemName: symbolName)
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(symbolColor)
-                        .frame(width: 30, height: 30)
-                        .background(symbolColor.opacity(0.14), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+        switch appState.status {
+        case .permissionRequired:
+            banner(
+                icon: "hand.raised.fill",
+                tint: ColorTokens.coral,
+                message: "Grant Accessibility access so alerts can work.",
+                actionTitle: "Open Settings"
+            ) {
+                appState.openAccessibilitySettings()
+            }
+        case .paused:
+            banner(
+                icon: "pause.fill",
+                tint: ColorTokens.fog,
+                message: "Monitoring is paused.",
+                actionTitle: "Resume"
+            ) {
+                appState.resumeWatching()
+            }
+        case .error:
+            banner(
+                icon: "exclamationmark.triangle.fill",
+                tint: ColorTokens.coral,
+                message: "The watcher hit an error. Try pausing and resuming.",
+                actionTitle: nil,
+                action: nil
+            )
+        case .idle, .watching, .attention:
+            EmptyView()
+        }
+    }
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Watcher")
-                            .font(.system(size: 11, weight: .bold))
-                            .textCase(.uppercase)
-                            .foregroundStyle(ColorTokens.fog.opacity(0.72))
+    private func banner(
+        icon: String,
+        tint: Color,
+        message: String,
+        actionTitle: String?,
+        action: (() -> Void)? = nil
+    ) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(tint)
 
-                        Text(appState.statusTitle)
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(.white)
-                    }
-                }
+            Text(message)
+                .font(.system(size: 11.5, weight: .medium))
+                .foregroundStyle(.white.opacity(0.92))
+                .fixedSize(horizontal: false, vertical: true)
 
-                Text(appState.statusDetail)
-                    .font(.system(size: 12))
-                    .foregroundStyle(ColorTokens.fog.opacity(0.84))
-                    .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 8)
 
-                VStack(spacing: 8) {
-                    statusRow(title: "Accessibility", value: accessibilityValue, color: accessibilityColor)
-                    statusRow(title: "Targets", value: targetsValue, color: targetsColor)
-                    statusRow(title: "Trigger", value: triggerValue, color: symbolColor)
-                }
+            if let actionTitle, let action {
+                Button(actionTitle, action: action)
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
             }
         }
-    }
-
-    private var symbolName: String {
-        switch appState.status {
-        case .permissionRequired:
-            "hand.raised.fill"
-        case .attention:
-            "bell.badge.fill"
-        case .paused:
-            "pause.circle.fill"
-        case .error:
-            "exclamationmark.triangle.fill"
-        case .idle, .watching:
-            "sparkle.magnifyingglass"
-        }
-    }
-
-    private var symbolColor: Color {
-        switch appState.status {
-        case .permissionRequired:
-            ColorTokens.accent
-        case .attention:
-            ColorTokens.accent
-        case .paused:
-            ColorTokens.fog
-        case .error:
-            ColorTokens.accent
-        case .idle, .watching:
-            ColorTokens.accentSoft
-        }
-    }
-
-    private var accessibilityValue: String {
-        appState.status == .permissionRequired ? "Required" : "Granted"
-    }
-
-    private var accessibilityColor: Color {
-        appState.status == .permissionRequired ? ColorTokens.magenta : ColorTokens.success
-    }
-
-    private var targetsValue: String {
-        let names = appState.runningApps.map(\.displayName).sorted()
-        guard !names.isEmpty else { return "Waiting" }
-        return names.joined(separator: " + ")
-    }
-
-    private var targetsColor: Color {
-        appState.runningApps.isEmpty ? ColorTokens.textMuted : ColorTokens.electricBlue
-    }
-
-    private var triggerValue: String {
-        switch appState.status {
-        case .permissionRequired:
-            return "Blocked"
-        case .paused:
-            return "Paused"
-        case .idle, .watching, .attention, .error:
-            return appState.runningApps.isEmpty ? "Standby" : "Armed"
-        }
-    }
-
-    private func statusRow(title: String, value: String, color: Color) -> some View {
-        HStack(spacing: 10) {
-            Circle()
-                .fill(color)
-                .frame(width: 7, height: 7)
-
-            Text(title)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(ColorTokens.fog.opacity(0.72))
-
-            Spacer()
-
-            Text(value)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.92))
-                .lineLimit(1)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .background(Color.white.opacity(0.035), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(tint.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(tint.opacity(0.25), lineWidth: 1)
+        )
     }
 }

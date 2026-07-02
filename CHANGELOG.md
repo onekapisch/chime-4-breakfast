@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-02 (UI redesign)
+
+- Redesigned the popover in a native macOS grouped-settings style: compact header with a single status chip, flat section cards with outside labels, hairline dividers, and small controls
+- Removed the redundant watcher-status card (status now lives in the header chip; permission/pause/error states appear as a contextual banner only when action is needed)
+- Moved Pause, diagnostics, and Open-at-login into a slim footer; custom attention phrases now sit behind a disclosure
+- Added a snapshot harness that renders the real popover to an image so visual changes are reviewed, not guessed
+
 ## 2026-07-02 (night)
 
 - Found via live logs that glows WERE firing but at half brightness for half a second — invisible from another window: stale stored intensity values below 0.7 now migrate to full brightness, the fade-in is near-instant so the ~1 s dwell is fully visible, and edge bands got brighter
