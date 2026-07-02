@@ -4,13 +4,13 @@
 
 ### Walk away from your AI. It'll call you back.
 
-Chime 4 Breakfast watches **Codex** and **Claude Desktop** and lets you know the moment a response lands — with a sound *and* a glow around your screen. One cue for "done," a bolder one for "it needs you."
+Chime 4 Breakfast watches **Codex** and **Claude Desktop** and lets you know the moment a response lands — with a sound and, when you stepped away, a glow around your screen. One cue for "done," a bolder one for "it needs you."
 
 <p>
   <img src="https://img.shields.io/badge/macOS-14%2B-111111?logo=apple&logoColor=white" alt="macOS 14+" />
   <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" alt="Swift 6" />
   <img src="https://img.shields.io/badge/License-MIT-3DA639" alt="MIT License" />
-  <img src="https://img.shields.io/badge/tests-26%20passing-3fb950" alt="26 tests passing" />
+  <img src="https://img.shields.io/badge/tests-39%20passing-3fb950" alt="39 tests passing" />
   <img src="https://img.shields.io/badge/100%25%20local-no%20telemetry-8957E5" alt="100% local, no telemetry" />
   <img src="https://img.shields.io/badge/PRs-welcome-FF4D5E" alt="PRs welcome" />
 </p>
@@ -21,7 +21,7 @@ Chime 4 Breakfast watches **Codex** and **Claude Desktop** and lets you know the
 
 ---
 
-You kick off a long task in Codex or Claude, switch to another window, and then… keep checking back. Did it finish? Is it stuck waiting on a yes/no? **Chime 4 Breakfast** ends the babysitting. It quietly watches the conversation and, the instant a reply settles, plays your chosen sound and lights up the edges of your display — so you can actually work on something else and trust you'll be pulled back at the right moment.
+You kick off a long task in Codex or Claude, switch to another window, and then… keep checking back. Did it finish? Is it stuck waiting on a yes/no? **Chime 4 Breakfast** ends the babysitting. It watches for the assistant's Stop control to disappear, confirms the finish edge, plays your chosen sound, and lights your display edges if you had stepped away.
 
 It's native, tiny, and lives in your menu bar. Everything happens on your Mac.
 
@@ -42,18 +42,18 @@ It's native, tiny, and lives in your menu bar. Everything happens on your Mac.
 
 - **Watches Codex & Claude Desktop** through the macOS Accessibility layer and fires **once per finished response**.
 - **Two distinct signals** — a soft cue when a reply simply completes, a bolder cue when it looks like it's asking you something.
-- **Full-screen edge glow** in colors you choose — completion fades quickly; attention pulses until you look.
+- **Full-screen edge glow** in the source app's icon color — completion fades quickly; attention pulses until you look.
 - **14 built-in sounds** with live preview, assignable per signal.
 - **Optional notification banners** for a classic Notification Center ping.
 - **Quiet hours, custom attention phrases, launch at login**, and a compact local activity log.
 
 <div align="center">
-<img src=".github/assets/glow-demo.png" width="760" alt="Completion glows green, attention glows red — on every display" />
+<img src=".github/assets/glow-demo.png" width="760" alt="Screen-edge glow in source-app colors on every display" />
 </div>
 
 ## 🌗 The signature: screen-edge glow
 
-Sound is great until your speakers are muted or you're in another room. The glow is the part people keep. Pick a color for **completion** and one for **attention**, set the intensity, and your display edges light up the moment a reply lands — on every connected monitor. Completion gives a quick, calm pulse and fades; attention keeps glowing until you acknowledge it.
+Sound is great until your speakers are muted or you're in another room. The glow is the part people keep. Chime uses the source app's icon color, so Claude and Codex feel distinct without extra setup. Completion gives a quick flash and fades; attention keeps pulsing until you open the popover or the alert ages out.
 
 ## 🔊 Sounds
 
@@ -65,12 +65,12 @@ Assign one to completions and another to attention — or turn sound off entirel
 
 ## 🧠 How detection works
 
-Chime 4 Breakfast reads the visible conversation text from the supported apps via the Accessibility API, waits for the latest reply to stop changing (so it fires once, not on every streamed token), then classifies it:
+Chime 4 Breakfast watches the supported apps through the Accessibility API and treats a response as finished when the generating/Stop control disappears. It confirms that edge on the next sample, then reads the latest assistant reply and classifies it:
 
 - contains a question, or phrases like *"let me know", "which one", "approve", "confirm"* → **Attention**
 - anything else → **Completion**
 
-The rules are deterministic and unit-tested — no model, no network call. If a response is ever misread, the popover's **Capture detection diagnostics** action writes exactly what the watcher saw to your Desktop so it can be fixed.
+The rules are deterministic and unit-tested — no model, no network call. If a response is ever misread, the popover's **Capture Diagnostics** action writes exactly what the watcher saw to your Desktop so it can be fixed.
 
 ## 🆚 How it compares
 
@@ -79,8 +79,8 @@ The rules are deterministic and unit-tested — no model, no network call. If a 
 | Works with Codex & Claude **desktop apps** | ✅ | ❌ | ❌ | — |
 | Knows **done** vs **needs your input** | ✅ | ❌ | ❌ | 🙂 |
 | **Screen-edge glow** (works muted / across the room) | ✅ | ❌ | ❌ | ❌ |
-| **Per-signal** sound + color | ✅ | ❌ | ❌ | — |
-| Fires **once** per reply (debounced) | ✅ | — | — | — |
+| **Per-event** sound + app-color glow | ✅ | ❌ | ❌ | — |
+| Fires **once** per Stop edge | ✅ | — | — | — |
 | **100% local**, no account | ✅ | ✅ | ✅ | ✅ |
 
 ## 🚀 Get started
@@ -100,7 +100,9 @@ Or build and launch straight from the terminal:
 ./scripts/run-debug.sh
 ```
 
-On first launch, grant **Accessibility** access when prompted (System Settings → Privacy & Security → Accessibility), keep Codex or Claude open on a conversation, and wait for a reply to settle. You'll hear the sound and see the glow.
+The debug launcher installs one canonical app at `~/Applications/Chime 4 Breakfast.app`. If an Apple Development signing identity is available, it signs that app before launch so macOS Accessibility permission survives rebuilds.
+
+On first launch, grant **Accessibility** access when prompted (System Settings → Privacy & Security → Accessibility), keep Codex or Claude open on a conversation, and wait for a response to finish. You'll hear the sound; if you switched away while it worked, you'll also see the glow.
 
 *(A signed, notarized DMG release is on the way — see [docs/RELEASE.md](docs/RELEASE.md).)*
 
@@ -114,7 +116,7 @@ On first launch, grant **Accessibility** access when prompted (System Settings �
 ## 🗺️ Roadmap
 
 - Validate and tune detection against more live Codex/Claude layouts
-- Per-app sound and glow overrides
+- Per-app sound overrides
 - Custom sound import
 - Support for Claude Code, Codex CLI, and the web apps
 - Signed DMG releases + auto-update

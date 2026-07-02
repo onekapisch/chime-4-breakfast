@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-07-02
+
+- Fixed the biggest source of missed alerts: the poll timer now runs in the common run-loop mode (it used to stall while menus or the popover were open) and the app opts out of App Nap while monitoring, so background throttling can no longer delay or drop the finish edge
+- The finish edge now self-schedules its confirmation pass instead of waiting for the next timer tick, so a completed response is confirmed within ~250 ms even when the conversation goes quiet
+- Bounded every Accessibility call with a 1-second messaging timeout and added a stall watchdog, so a busy or hung Codex/Claude can no longer freeze detection silently
+- Detector state now only resets on true system sleep/wake — ordinary display wake no longer drops in-flight responses
+- Attention glow now pulses briefly and always auto-dismisses; no glow ever lingers on screen
+
+## 2026-06-26
+
+- Replaced the old settle-based completion path with a Stop-edge detector that confirms the finish edge, preserves away-from-app state, and suppresses duplicate replies
+- Routed completion and attention glows separately: completions flash briefly, attention pulses until acknowledged or timed out
+- Changed screen glow color to the source app icon color and removed stale per-event glow color preferences
+- Reduced AX traversal cost by scanning cheaply for generating state first and only collecting full text on finish/confirm samples
+- Added scan-session guards so stale detached AX reads cannot emit events after monitoring restarts
+- Improved latest-message selection to prefer labeled assistant turns over longer user prompts
+- Added diagnostics output for current generating state and gated debug logging behind `CHIME_DEBUG_LOG=1`
+- Fixed sound preview/playback loading so selected built-in WAV files resolve from the app bundle instead of falling back to the system beep
+- Replaced sound playback with a retained `AVAudioPlayer`, full-volume preparation, and explicit playback success logging
+- Made screen-glow preview deterministic by preferring Codex when both watched apps are running, and clarified that glow color is app-derived while event type controls flash versus pulse
+- Increased completion glow visibility and added debug logs for glow presentation, window creation, and dismissal
+- Rebuilt the glow renderer with in-window edge bands so the flash is not clipped or too subtle when shown over another app
+- Added a fast-completion fallback that baselines stable messages and emits an away completion when a response finishes before polling sees the Stop edge
+- Disarmed stale away-state fast fallback after idle samples and reset detection on sleep/wake so opening the laptop cannot trigger old transcript glows
+- Polished the menu bar popover with clearer watcher health, app icons, app-color glow copy, event accents, and a cleaner recent-activity list
+- Updated the popover header to use the official app icon with a live status badge and refined the shared glass panel highlights
+- Added tests for finish-edge behavior, glow gating, assistant selection, AX generating labels, and stale in-flight reset
+- Updated the debug launcher to install and open the single canonical app at `~/Applications/Chime 4 Breakfast.app`
+- Debug builds now re-sign that canonical app with the local Apple Development identity when available, preventing Accessibility permission churn between rebuilds
+
 ## 2026-06-24
 
 - Added full-screen edge glow: the display border lights up in a calm color on completion and a stronger color for attention-needed responses, for both Codex and Claude
