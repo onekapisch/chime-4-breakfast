@@ -113,5 +113,6 @@ struct MiniToggle: View {
             .labelsHidden()
             .toggleStyle(.switch)
             .controlSize(.mini)
+            .tint(ColorTokens.electricBlue)
     }
 }

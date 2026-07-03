@@ -16,11 +16,7 @@ struct AppToggleSection: View {
 
                     Text(targetApp.displayName)
                         .font(.system(size: 12.5, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.96))
-
-                    Text(isRunning ? "Open" : "Not open")
-                        .font(.system(size: 10.5))
-                        .foregroundStyle(isRunning ? ColorTokens.success.opacity(0.85) : ColorTokens.fog.opacity(0.45))
+                        .foregroundStyle(.white.opacity(isRunning ? 0.96 : 0.55))
 
                     Spacer(minLength: 8)
 
@@ -30,6 +26,7 @@ struct AppToggleSection: View {
                     ))
                 }
                 .padding(.vertical, 7)
+                .help(isRunning ? "\(targetApp.displayName) is open" : "\(targetApp.displayName) is not open")
             }
         }
     }
@@ -53,6 +50,8 @@ private struct TargetAppIcon: View {
                 }
             }
             .frame(width: 22, height: 22)
+            .opacity(isRunning ? 1 : 0.5)
+            .grayscale(isRunning ? 0 : 0.8)
 
             Circle()
                 .fill(isRunning ? ColorTokens.success : Color.white.opacity(0.2))

@@ -67,6 +67,43 @@ final class PopoverSnapshotTests: XCTestCase {
         try png.write(to: URL(fileURLWithPath: "/tmp/popover-snapshot.png"))
 
         window.orderOut(nil)
+
+        // Second render: the full sections column without the fixed popover
+        // height, so below-the-fold content (Recent, footer context) is
+        // reviewable too.
+        let columnView = VStack(spacing: 14) {
+            StatusBanner()
+            AppToggleSection()
+            SoundSection()
+            GlowSection()
+            RulesSection()
+            RecentActivitySection()
+        }
+        .padding(12)
+        .frame(width: 360)
+        .background(ColorTokens.base)
+        .environmentObject(state)
+        .preferredColorScheme(.dark)
+
+        let columnHosting = NSHostingView(rootView: columnView)
+        columnHosting.frame = NSRect(x: 0, y: 0, width: 360, height: 1000)
+        let columnWindow = NSWindow(
+            contentRect: columnHosting.frame,
+            styleMask: [.borderless],
+            backing: .buffered,
+            defer: false
+        )
+        columnWindow.appearance = NSAppearance(named: .darkAqua)
+        columnWindow.contentView = columnHosting
+        columnWindow.orderFrontRegardless()
+        RunLoop.main.run(until: Date().addingTimeInterval(0.5))
+
+        let columnRep = columnHosting.bitmapImageRepForCachingDisplay(in: columnHosting.bounds)!
+        columnHosting.cacheDisplay(in: columnHosting.bounds, to: columnRep)
+        let columnPNG = columnRep.representation(using: .png, properties: [:])!
+        try columnPNG.write(to: URL(fileURLWithPath: "/tmp/popover-sections.png"))
+
+        columnWindow.orderOut(nil)
     }
 }
 
