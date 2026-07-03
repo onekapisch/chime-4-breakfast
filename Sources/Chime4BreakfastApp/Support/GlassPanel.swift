@@ -1,24 +1,6 @@
 import AppKit
 import SwiftUI
 
-/// True macOS window vibrancy: blurs whatever is behind the popover so the
-/// panel reads as glass, not a flat dark sheet.
-struct VisualEffectBackground: NSViewRepresentable {
-    var material: NSVisualEffectView.Material = .hudWindow
-
-    func makeNSView(context: Context) -> NSVisualEffectView {
-        let view = NSVisualEffectView()
-        view.material = material
-        view.blendingMode = .behindWindow
-        view.state = .active
-        return view
-    }
-
-    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
-        nsView.material = material
-    }
-}
-
 /// Shared building blocks for the popover: a soft glass card with its label
 /// outside (macOS System Settings grouped-list style), roomy rows, and
 /// hairline dividers.

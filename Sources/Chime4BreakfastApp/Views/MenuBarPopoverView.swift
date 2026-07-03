@@ -6,15 +6,14 @@ struct MenuBarPopoverView: View {
 
     var body: some View {
         ZStack {
-            // Real vibrancy: the desktop blurs through, then a dark tint and a
-            // soft top light give the panel depth without neon noise.
-            VisualEffectBackground(material: .hudWindow)
-                .ignoresSafeArea()
-
+            // Depth comes from an opaque layered gradient with a soft top
+            // light. (NSVisualEffectView behind-window blur breaks the
+            // MenuBarExtra window's shape, so no live vibrancy here.)
             LinearGradient(
                 colors: [
-                    ColorTokens.baseElevated.opacity(0.86),
-                    ColorTokens.base.opacity(0.92)
+                    ColorTokens.baseElevated,
+                    ColorTokens.base,
+                    Color(red: 0.02, green: 0.02, blue: 0.03)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
@@ -193,11 +192,12 @@ struct MenuBarPopoverView: View {
     }
 }
 
-/// The five-bar waveform from the app icon, miniaturized as a brand mark.
-/// Breathes very gently while actively watching; static otherwise.
+/// The five-bar waveform from the app icon, miniaturized as a static brand
+/// mark. Bright while actively watching, dimmed otherwise. (No looping
+/// animation: repeat-forever animations inside a MenuBarExtra window cause
+/// continuous layout churn that makes the popover jitter.)
 private struct WaveformMotif: View {
     let active: Bool
-    @State private var breathe = false
 
     private let heights: [CGFloat] = [7, 11, 15, 10, 7.5]
 
@@ -213,25 +213,9 @@ private struct WaveformMotif: View {
                         )
                     )
                     .frame(width: 3.2, height: heights[index])
-                    .scaleEffect(
-                        y: active && breathe ? (index == 2 ? 0.72 : 1.12) : 1,
-                        anchor: .center
-                    )
             }
         }
         .frame(height: 16, alignment: .center)
-        .opacity(active ? 0.95 : 0.55)
-        .onAppear { updateBreathing() }
-        .onChange(of: active) { _, _ in updateBreathing() }
-    }
-
-    private func updateBreathing() {
-        guard active else {
-            breathe = false
-            return
-        }
-        withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true)) {
-            breathe = true
-        }
+        .opacity(active ? 0.95 : 0.5)
     }
 }
