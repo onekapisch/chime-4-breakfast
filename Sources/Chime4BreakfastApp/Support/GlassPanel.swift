@@ -1,8 +1,27 @@
+import AppKit
 import SwiftUI
 
-/// Shared building blocks for the popover: a quiet, flat card with its label
-/// outside (macOS System Settings grouped-list style), compact rows, and
-/// hairline dividers. No heavy shadows, no stacked materials.
+/// True macOS window vibrancy: blurs whatever is behind the popover so the
+/// panel reads as glass, not a flat dark sheet.
+struct VisualEffectBackground: NSViewRepresentable {
+    var material: NSVisualEffectView.Material = .hudWindow
+
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.material = material
+        view.blendingMode = .behindWindow
+        view.state = .active
+        return view
+    }
+
+    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
+        nsView.material = material
+    }
+}
+
+/// Shared building blocks for the popover: a soft glass card with its label
+/// outside (macOS System Settings grouped-list style), roomy rows, and
+/// hairline dividers.
 struct SectionBlock<Content: View>: View {
     let title: String?
     var trailing: AnyView?
@@ -15,35 +34,52 @@ struct SectionBlock<Content: View>: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 7) {
             if title != nil || trailing != nil {
                 HStack {
                     if let title {
                         Text(title)
-                            .font(.system(size: 10.5, weight: .semibold))
-                            .kerning(0.6)
+                            .font(.system(size: 11, weight: .semibold))
+                            .kerning(0.8)
                             .textCase(.uppercase)
-                            .foregroundStyle(ColorTokens.fog.opacity(0.62))
+                            .foregroundStyle(ColorTokens.fog.opacity(0.66))
                     }
                     Spacer(minLength: 0)
                     if let trailing {
                         trailing
                     }
                 }
-                .padding(.horizontal, 4)
+                .padding(.horizontal, 5)
             }
 
             VStack(alignment: .leading, spacing: 0) {
                 content
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 4)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 5)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .strokeBorder(Color.white.opacity(0.07), lineWidth: 1)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.white.opacity(0.085), Color.white.opacity(0.05)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
             )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [Color.white.opacity(0.16), Color.white.opacity(0.05)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ),
+                        lineWidth: 1
+                    )
+            )
+            .shadow(color: Color.black.opacity(0.22), radius: 10, x: 0, y: 6)
         }
     }
 }
@@ -58,33 +94,33 @@ struct GlassPanel<Content: View>: View {
 
     var body: some View {
         content
-            .padding(12)
+            .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .strokeBorder(Color.white.opacity(0.07), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(Color.white.opacity(0.09), lineWidth: 1)
             )
     }
 }
 
-/// A compact settings row: 12.5 pt title, optional muted subtitle, trailing
-/// control. Rows stack inside a SectionBlock separated by RowDivider.
+/// A settings row with room to breathe: 13 pt title, optional muted subtitle,
+/// trailing control. Rows stack inside a SectionBlock separated by RowDivider.
 struct CompactRow<Trailing: View>: View {
     let title: String
     var subtitle: String?
     @ViewBuilder var trailing: Trailing
 
     var body: some View {
-        HStack(spacing: 10) {
-            VStack(alignment: .leading, spacing: 1) {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.system(size: 12.5, weight: .medium))
+                    .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(.white.opacity(0.96))
                 if let subtitle {
                     Text(subtitle)
-                        .font(.system(size: 10.5))
-                        .foregroundStyle(ColorTokens.fog.opacity(0.55))
+                        .font(.system(size: 11))
+                        .foregroundStyle(ColorTokens.fog.opacity(0.58))
                         .lineLimit(1)
                 }
             }
@@ -93,14 +129,14 @@ struct CompactRow<Trailing: View>: View {
 
             trailing
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 10)
     }
 }
 
 struct RowDivider: View {
     var body: some View {
         Rectangle()
-            .fill(Color.white.opacity(0.06))
+            .fill(Color.white.opacity(0.07))
             .frame(height: 1)
     }
 }
