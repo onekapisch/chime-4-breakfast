@@ -63,6 +63,8 @@ A curated set of 14, each previewable in one click:
 
 Assign one to completions and another to attention, or turn sound off entirely and keep just the glow.
 
+Every sound is **synthesized from scratch** by [`scripts/gen-sounds.py`](scripts/gen-sounds.py), with no samples or third-party audio, and dedicated to the public domain under [CC0](Sources/Chime4BreakfastApp/Resources/Sounds/NOTICE.md). Regenerate or remix them with `python3 scripts/gen-sounds.py`.
+
 ## 🧠 How detection works
 
 Chime 4 Breakfast watches the supported apps through the Accessibility API and treats a response as finished when the generating/Stop control disappears. It confirms that edge on the next sample, then reads the latest assistant reply and classifies it:
