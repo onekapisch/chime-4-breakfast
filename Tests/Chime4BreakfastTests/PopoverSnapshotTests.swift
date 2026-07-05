@@ -4,7 +4,7 @@ import XCTest
 @testable import Chime4BreakfastApp
 
 /// Renders the real popover to /tmp/popover-snapshot.png so visual changes can
-/// be reviewed without clicking through the menu bar. Not a pass/fail test —
+/// be reviewed without clicking through the menu bar. Not a pass/fail test -
 /// a design harness.
 @MainActor
 final class PopoverSnapshotTests: XCTestCase {
@@ -19,7 +19,7 @@ final class PopoverSnapshotTests: XCTestCase {
             sourceApp: .claude,
             eventType: .attention,
             timestamp: Date(),
-            excerpt: "Which option should I use for the release build — automatic signing or the manual profile?",
+            excerpt: "Which option should I use for the release build, automatic signing or the manual profile?",
             fingerprint: "snap-1",
             delivery: "Sound + glow"
         ))
@@ -30,7 +30,7 @@ final class PopoverSnapshotTests: XCTestCase {
             timestamp: Date(),
             excerpt: "Implemented the retry logic and all 45 tests pass.",
             fingerprint: "snap-2",
-            delivery: "Sound — you were in the app"
+            delivery: "Sound only (you were in the app)"
         ))
 
         let probe = SnapshotProbe()

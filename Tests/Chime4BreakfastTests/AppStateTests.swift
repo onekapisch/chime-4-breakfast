@@ -167,7 +167,7 @@ final class AppStateTests: XCTestCase {
 
         XCTAssertEqual(glow.events, [])
         XCTAssertEqual(sound.playedSoundIDs, [])
-        XCTAssertEqual(state.recentActivity.first?.delivery, "Muted — completion alerts are off")
+        XCTAssertEqual(state.recentActivity.first?.delivery, "Muted (completion alerts are off)")
     }
 
     func test_away_completion_plays_sound_and_glows_with_delivery_note() {

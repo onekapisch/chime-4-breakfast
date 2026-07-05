@@ -10,7 +10,7 @@ final class GlowOverlayModel: ObservableObject {
     @Published var intensity: Double = 1.0
 }
 
-/// A soft ambient glow that hugs the screen edges and fades inward — no hard
+/// A soft ambient glow that hugs the screen edges and fades inward - no hard
 /// outline. Click-through and purely decorative; the hosting window handles
 /// event transparency.
 struct GlowBorderView: View {

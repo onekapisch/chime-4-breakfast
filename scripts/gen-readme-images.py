@@ -3,7 +3,7 @@
 
 Composites the live popover screenshot (rendered by PopoverSnapshotTests to
 /tmp/popover-snapshot.png) and the app icon into a branded hero, a framed
-popover shot, and a screen-glow illustration — all written to .github/assets/.
+popover shot, and a screen-glow illustration, all written to .github/assets/.
 """
 import os
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
@@ -131,13 +131,14 @@ def build_hero():
     img.alpha_composite(icon, (96, 118))
 
     x = 322
-    draw.text((x, 150), "Chime 4 Breakfast", font=font(66, bold=True), fill=(255, 255, 255))
-    draw.text((x, 236), "Walk away from your AI — it'll call you back.", font=font(30), fill=(196, 201, 214))
+    draw.text((x, 144), "Chime 4 Breakfast", font=font(64, bold=True), fill=(255, 255, 255))
+    draw.text((x, 228), "No need to keep watching AI think.", font=font(30), fill=(196, 201, 214))
     for i, line in enumerate(wrap(draw,
-            "A native macOS menu-bar watcher for Codex & Claude Desktop. A sound "
-            "— and a screen-edge glow when you've stepped away — the moment a reply lands.",
-            font(21), 640)):
-        draw.text((x, 300 + i * 30), line, font=font(21), fill=(146, 151, 166))
+            "Move on to another task. C4B notifies you the moment Codex or Claude "
+            "Desktop needs you or finishes a reply. A sound, plus a screen-edge glow "
+            "when you have stepped away.",
+            font(21), 650)):
+        draw.text((x, 288 + i * 30), line, font=font(21), fill=(146, 151, 166))
 
     px = x
     py = 430
@@ -196,10 +197,10 @@ def build_glow_demo():
         d.text((x0 + 66, y0 + sh - 46), app_name, font=font(20, bold=True), fill=(235, 238, 245), anchor="lm")
         d.text((cx, y0 + sh + 52), caption, font=font(21), fill=(170, 175, 190), anchor="mm")
 
-    screen(W * 0.28, CLAUDE, "Claude", "Claude finished — warm glow")
-    screen(W * 0.72, CODEX, "Codex", "Codex finished — blue glow")
+    screen(W * 0.28, CLAUDE, "Claude", "Claude finished, warm glow")
+    screen(W * 0.72, CODEX, "Codex", "Codex finished, blue glow")
     ImageDraw.Draw(img).text((W // 2, 70),
-                             "The edge lights up in the app's own color — so you know who's done, at a glance",
+                             "The edge lights up in the app's own color, so you know who is done at a glance",
                              font=font(24, bold=True), fill=(225, 228, 238), anchor="mm")
     img.convert("RGB").save(os.path.join(ASSETS, "glow-demo.png"))
     print("wrote glow-demo.png")
