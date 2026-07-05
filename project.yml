@@ -37,6 +37,14 @@ targets:
         INFOPLIST_KEY_LSUIElement: YES
         DEFINES_MODULE: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+      configs:
+        # Notarized Direct Distribution requires the Hardened Runtime. Enable it
+        # for Release only so local Debug builds and the debugger are unaffected.
+        # The app needs no hardened-runtime entitlement exceptions: reading other
+        # apps via the Accessibility API is gated by the Accessibility permission
+        # (TCC), not an entitlement, and audio playback needs none.
+        Release:
+          ENABLE_HARDENED_RUNTIME: YES
   Chime4BreakfastTests:
     type: bundle.unit-test
     platform: macOS
