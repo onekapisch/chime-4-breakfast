@@ -15,7 +15,7 @@ xcodegen generate
 open Chime4Breakfast.xcodeproj
 ```
 
-The `.xcodeproj` is generated and intentionally not committed — always run
+The `.xcodeproj` is generated and intentionally not committed - always run
 `xcodegen generate` after pulling changes that touch `project.yml` or add files.
 
 ## Before opening a pull request

@@ -2,7 +2,7 @@ import SwiftUI
 
 /// A contextual banner that only appears when something needs the user:
 /// missing Accessibility permission, paused monitoring, or a watcher error.
-/// In the healthy state it renders nothing — the header chip already says
+/// In the healthy state it renders nothing - the header chip already says
 /// "Watching".
 struct StatusBanner: View {
     @EnvironmentObject private var appState: AppState

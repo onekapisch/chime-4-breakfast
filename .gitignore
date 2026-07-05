@@ -11,6 +11,9 @@ Chime4Breakfast.xcodeproj/
 xcuserdata/
 .env.local
 
+# Per-machine code-signing override written by scripts/setup-signing.sh
+Config/Local.xcconfig
+
 # Local planning artifacts (not part of the project)
 task_plan.md
 notes.md

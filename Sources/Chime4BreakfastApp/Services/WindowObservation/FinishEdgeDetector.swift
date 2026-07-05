@@ -16,7 +16,7 @@ final class FinishEdgeDetector {
     /// Minimum spacing between two alerts for the same app. A confirmed Stop
     /// edge always represents a real completion (regardless of what text the
     /// selector happened to pick), so identical-message dedup would silently
-    /// swallow rapid consecutive replies — this brief debounce only absorbs
+    /// swallow rapid consecutive replies - this brief debounce only absorbs
     /// generating-indicator flicker.
     private let refireDebounce: TimeInterval = 3
 
@@ -138,7 +138,7 @@ final class FinishEdgeDetector {
         state.lastObservedFingerprint = selectedFingerprint
         state.fastCompletionFallbackArmed = isFrontmost
 
-        // A confirmed Stop edge is a real completion by construction — fire even
+        // A confirmed Stop edge is a real completion by construction - fire even
         // when the selected text matches the previous reply (short answers like
         // "Hi." often select the same transcript candidate twice). The debounce
         // alone absorbs indicator flicker.

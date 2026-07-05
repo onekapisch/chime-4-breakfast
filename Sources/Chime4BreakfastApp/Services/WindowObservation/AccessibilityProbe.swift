@@ -52,7 +52,7 @@ enum AXScan {
     /// Bounds every AX message this process sends. Electron apps can beachball
     /// while rendering a large response; without this, a single attribute read
     /// can hang for the 6-second system default and a full walk can stall the
-    /// scanner for minutes — which reads as "the app randomly stopped working".
+    /// scanner for minutes - which reads as "the app randomly stopped working".
     static let configureGlobalTimeout: Void = {
         AXUIElementSetMessagingTimeout(AXUIElementCreateSystemWide(), 1.0)
     }()
@@ -92,8 +92,8 @@ enum AXScan {
         return best
     }
 
-    /// True when the app still appears to be generating — a Stop control or a
-    /// thinking/reasoning status is present — so the current text is not yet a
+    /// True when the app still appears to be generating - a Stop control or a
+    /// thinking/reasoning status is present - so the current text is not yet a
     /// finished reply and must not trigger an alert.
     static func indicatesGenerating(pid: pid_t) -> Bool {
         _ = configureGlobalTimeout
@@ -261,7 +261,7 @@ final class AccessibilityProbe: AccessibilityProbing {
     }
 
     /// Opting out of App Nap while monitoring: this is a background agent, and
-    /// napped timers slip from seconds to minutes — the finish edge then goes
+    /// napped timers slip from seconds to minutes - the finish edge then goes
     /// unobserved and alerts appear "randomly" late or never.
     private func beginActivityIfNeeded() {
         guard activityToken == nil else { return }
@@ -315,8 +315,8 @@ final class AccessibilityProbe: AccessibilityProbing {
     private func registerLifecycleObservers() {
         let notificationCenter = NSWorkspace.shared.notificationCenter
         // Only true system sleep/wake resets detector state. Display wake
-        // (screensDidWake) fires during ordinary use — e.g. an external monitor
-        // waking — and resetting there silently drops in-flight finishes.
+        // (screensDidWake) fires during ordinary use - e.g. an external monitor
+        // waking - and resetting there silently drops in-flight finishes.
         let notifications: [Notification.Name] = [
             NSWorkspace.willSleepNotification,
             NSWorkspace.didWakeNotification
@@ -352,7 +352,7 @@ final class AccessibilityProbe: AccessibilityProbing {
     }
 
     /// Event-driven away detection: the instant the user switches to another app
-    /// while a watched app is generating, remember they stepped away — even if
+    /// while a watched app is generating, remember they stepped away - even if
     /// they switch back before it finishes.
     private func handleActivation(activatedBundleID: String?) {
         finishDetector.noteActivation(bundleIdentifier: activatedBundleID)
@@ -373,7 +373,7 @@ final class AccessibilityProbe: AccessibilityProbing {
     func captureDiagnostics(for apps: [TargetApp]) -> String {
         let timestamp = ISO8601DateFormatter().string(from: Date())
         var lines: [String] = [
-            "Chime 4 Breakfast — Detection Diagnostics",
+            "Chime 4 Breakfast - Detection Diagnostics",
             "Generated: \(timestamp)",
             "Accessibility trusted: \(AXIsProcessTrusted())",
             ""
@@ -439,7 +439,7 @@ final class AccessibilityProbe: AccessibilityProbing {
     private func beginScanIfIdle(app: TargetApp, pid: pid_t) {
         if let startedAt = extractingApps[app] {
             guard Date().timeIntervalSince(startedAt) > extractionStallLimit else { return }
-            chimeDebugLog("scan stalled app=\(app.rawValue) — abandoning")
+            chimeDebugLog("scan stalled app=\(app.rawValue) - abandoning")
             scanSessions[app, default: 0] += 1
         }
 
@@ -488,7 +488,7 @@ final class AccessibilityProbe: AccessibilityProbing {
         }
 
         // The finish edge needs a confirm observation, and generation needs the
-        // next poll — but once streaming stops, AX notifications stop too, so
+        // next poll - but once streaming stops, AX notifications stop too, so
         // never leave the sequence hostage to the slow timer: self-schedule the
         // follow-up while the detector is mid-flight.
         if finishDetector.needsMessage(for: app) {
@@ -510,7 +510,7 @@ final class AccessibilityProbe: AccessibilityProbing {
 
         if observers[app] != nil {
             if observerPIDs[app] == pid { return }
-            // The app was relaunched (new PID) — tear down the stale observer.
+            // The app was relaunched (new PID) - tear down the stale observer.
             removeObserver(for: app)
         }
 

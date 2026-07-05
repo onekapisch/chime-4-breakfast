@@ -330,7 +330,7 @@ final class AppState: ObservableObject {
         icon.draw(in: NSRect(x: 0, y: 0, width: size, height: size))
         NSGraphicsContext.restoreGraphicsState()
 
-        // Pick the most vivid (saturation × brightness) opaque pixel — that's the
+        // Pick the most vivid (saturation × brightness) opaque pixel - that's the
         // brand accent rather than the background.
         var best = -1.0
         var rgb = (0.0, 0.0, 0.0)
@@ -367,15 +367,15 @@ final class AppState: ObservableObject {
 
         let delivery: String
         if !eventEnabled {
-            delivery = "Muted — \(observedEvent.eventType.title.lowercased()) alerts are off"
+            delivery = "Muted (\(observedEvent.eventType.title.lowercased()) alerts are off)"
         } else if quietHoursActive {
-            delivery = "Muted — quiet hours"
+            delivery = "Muted (quiet hours)"
         } else if showGlow {
             delivery = "Sound + glow"
         } else if away {
-            delivery = "Sound — glow is off"
+            delivery = "Sound only (glow is off)"
         } else {
-            delivery = "Sound — you were in the app"
+            delivery = "Sound only (you were in the app)"
         }
 
         let item = ActivityItem(

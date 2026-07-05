@@ -30,7 +30,7 @@ final class ScreenGlowController: ScreenGlowPresenting {
     }
 
     /// Attention pulses a little longer than a completion flash, but always
-    /// auto-dismisses — the glow is a nudge, never a lingering overlay.
+    /// auto-dismisses - the glow is a nudge, never a lingering overlay.
     func showAttention(color: Color, intensity: Double) {
         chimeDebugLog("GLOW attention.requested intensity=\(intensity)")
         present(color: color, pulsing: true, intensity: intensity)
