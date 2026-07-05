@@ -53,13 +53,23 @@ It is native, tiny, and lives in your menu bar. Everything happens on your Mac.
 
 ## 🌗 The signature: screen-edge glow
 
+<div align="center">
+<img src=".github/assets/glow.gif" width="720" alt="Screen edges glow warm when Claude finishes, then pulse blue when Codex needs you" />
+</div>
+
 Sound is great until your speakers are muted or you are in another room. The glow is the part people keep. Chime uses the source app's icon color, so Claude and Codex feel distinct without extra setup. Completion gives a quick flash and fades; attention gives a stronger brief pulse without leaving a persistent overlay on screen.
 
 ## 🔊 Sounds
 
-A curated set of 14, each previewable in one click:
+<div align="center">
+<img src=".github/assets/sounds.png" width="840" alt="The 14 built-in sounds with their real waveforms" />
+</div>
 
-`Tick` · `Beep` · `Horn` · `Wave` · `Coin` · `Glass` · `Ping` · `Chime` · `Pulse` · `Bloom` · `Spark` · `Knock` · `Drift` · `Flare`
+Fourteen built-in tones, each with a one-click **preview** in the popover so you can audition before assigning. Prefer the terminal?
+
+```bash
+afplay Sources/Chime4BreakfastApp/Resources/Sounds/chime.wav
+```
 
 Assign one to completions and another to attention, or turn sound off entirely and keep just the glow.
 
