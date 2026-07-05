@@ -97,6 +97,30 @@ The rules are deterministic and unit-tested. No model, no network call. If a res
 
 ## 🚀 Get started
 
+### Install
+
+1. Download the latest **Chime 4 Breakfast.dmg** from the [Releases page](https://github.com/onekapisch/chime-4-breakfast/releases/latest).
+2. Open the DMG and drag **Chime 4 Breakfast** into **Applications**.
+3. Launch it from Applications.
+
+It is signed with a Developer ID and notarized by Apple, so it opens without security warnings. Requires **macOS 14 or later** (Apple Silicon and Intel).
+
+### First launch: grant Accessibility (one time)
+
+<div align="center">
+<img src=".github/assets/first-run.png" width="840" alt="Three steps: drag into Applications, enable in Accessibility, then it is watching" />
+</div>
+
+Chime detects when Codex or Claude finish by reading their windows through the macOS **Accessibility** API, so on first launch it asks for that permission. This is a normal, one-time step, not a bug:
+
+1. When the popover shows **Grant Accessibility access**, click **Open Settings**.
+2. In **System Settings → Privacy & Security → Accessibility**, turn **Chime 4 Breakfast** on.
+3. Done. Keep Codex or Claude open on a conversation and let a reply finish. You will hear the sound, and if you had stepped away, you will see the glow.
+
+You grant it **once**. The permission persists across app updates, because every release is signed with the same Developer ID.
+
+### Build from source
+
 > Requires **macOS 14+**, **Xcode 16+**, and [XcodeGen](https://github.com/yonyz/XcodeGen) (`brew install xcodegen`).
 
 ```bash
@@ -121,10 +145,6 @@ The debug launcher installs one canonical app at `~/Applications/Chime 4 Breakfa
 ```
 
 It detects your identity and team, writes a gitignored `Config/Local.xcconfig`, and clears the stale grant. Grant Accessibility one more time after that and it sticks across all future rebuilds, whether you launch from Xcode, `xcodebuild`, or the debug script.
-
-On first launch, grant **Accessibility** access when prompted (System Settings → Privacy & Security → Accessibility), keep Codex or Claude open on a conversation, and wait for a response to finish. You will hear the sound; if you switched away while it worked, you will also see the glow.
-
-*(A signed, notarized DMG release is on the way. See [docs/RELEASE.md](docs/RELEASE.md).)*
 
 ## 🔒 Privacy & security
 
