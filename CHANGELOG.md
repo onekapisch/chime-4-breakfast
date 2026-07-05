@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-05
+
+- Prepared the project for public GitHub launch by cleaning repository hygiene, CI, documentation, diagnostics privacy copy, notification handling, dead support code, and developer tooling portability
+
 ## 2026-07-02 (UI redesign)
 
 - Redesigned the popover in a native macOS grouped-settings style: compact header with a single status chip, flat section cards with outside labels, hairline dividers, and small controls

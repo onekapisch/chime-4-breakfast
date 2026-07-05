@@ -1,12 +1,21 @@
 // Renders a 1024×1024 app icon master PNG for Chime 4 Breakfast using Core
 // Graphics only (runs headless). Usage: swift generate-app-icon.swift <out.png>
 import CoreGraphics
+import Darwin
 import Foundation
 import ImageIO
 import UniformTypeIdentifiers
 
 let size = 1024
-let colorSpace = CGColorSpace(name: CGColorSpace.sRGB)!
+
+func fail(_ message: String) -> Never {
+    FileHandle.standardError.write(Data("error: \(message)\n".utf8))
+    exit(EXIT_FAILURE)
+}
+
+guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) else {
+    fail("Unable to create sRGB color space")
+}
 
 guard let ctx = CGContext(
     data: nil,
@@ -17,13 +26,20 @@ guard let ctx = CGContext(
     space: colorSpace,
     bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
 ) else {
-    fatalError("Unable to create bitmap context")
+    fail("Unable to create bitmap context")
 }
 
 let canvas = CGFloat(size)
 
 func rgb(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat, _ a: CGFloat = 1) -> CGColor {
     CGColor(srgbRed: r / 255, green: g / 255, blue: b / 255, alpha: a)
+}
+
+func makeGradient(colors: CFArray, locations: [CGFloat]) -> CGGradient {
+    guard let gradient = CGGradient(colorsSpace: colorSpace, colors: colors, locations: locations) else {
+        fail("Unable to create gradient")
+    }
+    return gradient
 }
 
 ctx.clear(CGRect(x: 0, y: 0, width: canvas, height: canvas))
@@ -39,18 +55,21 @@ ctx.addPath(basePath)
 ctx.clip()
 
 let baseColors = [rgb(32, 32, 36), rgb(2, 2, 4)] as CFArray
-let baseGradient = CGGradient(colorsSpace: colorSpace, colors: baseColors, locations: [0, 1])!
+let baseGradient = makeGradient(colors: baseColors, locations: [0, 1])
 ctx.drawLinearGradient(baseGradient, start: CGPoint(x: 0, y: canvas), end: CGPoint(x: 0, y: 0), options: [])
 
 func radialGlow(_ center: CGPoint, _ color: CGColor, _ outerRadius: CGFloat) {
-    let colors = [color, color.copy(alpha: 0)!] as CFArray
-    let gradient = CGGradient(colorsSpace: colorSpace, colors: colors, locations: [0, 1])!
+    guard let transparent = color.copy(alpha: 0) else {
+        fail("Unable to create transparent glow color")
+    }
+    let colors = [color, transparent] as CFArray
+    let gradient = makeGradient(colors: colors, locations: [0, 1])
     ctx.drawRadialGradient(gradient, startCenter: center, startRadius: 0, endCenter: center, endRadius: outerRadius, options: [])
 }
 
 // Edge vignette deepens the corners for a polished black-glass look.
 let vignetteColors = [rgb(0, 0, 0, 0.0), rgb(0, 0, 0, 0.60)] as CFArray
-let vignette = CGGradient(colorsSpace: colorSpace, colors: vignetteColors, locations: [0.42, 1.0])!
+let vignette = makeGradient(colors: vignetteColors, locations: [0.42, 1.0])
 let vignetteCenter = CGPoint(x: canvas / 2, y: canvas / 2)
 ctx.drawRadialGradient(
     vignette,
@@ -73,7 +92,7 @@ let midY = canvas / 2
 
 // Top-to-bottom silver gradient for a restrained, premium monochrome look.
 let barColors = [rgb(245, 246, 250), rgb(170, 172, 182)] as CFArray
-let barGradient = CGGradient(colorsSpace: colorSpace, colors: barColors, locations: [0, 1])!
+let barGradient = makeGradient(colors: barColors, locations: [0, 1])
 
 for height in heights {
     let barHeight = canvas * height
@@ -102,15 +121,19 @@ ctx.setLineWidth(3)
 ctx.strokePath()
 ctx.restoreGState()
 
-guard let image = ctx.makeImage() else { fatalError("Unable to render image") }
+guard let image = ctx.makeImage() else {
+    fail("Unable to render image")
+}
 
 let outPath = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "icon-1024.png"
 let url = URL(fileURLWithPath: outPath)
 
 guard let destination = CGImageDestinationCreateWithURL(url as CFURL, UTType.png.identifier as CFString, 1, nil) else {
-    fatalError("Unable to create image destination")
+    fail("Unable to create image destination")
 }
 
 CGImageDestinationAddImage(destination, image, nil)
-guard CGImageDestinationFinalize(destination) else { fatalError("Unable to write PNG") }
+guard CGImageDestinationFinalize(destination) else {
+    fail("Unable to write PNG")
+}
 print("Wrote \(outPath)")

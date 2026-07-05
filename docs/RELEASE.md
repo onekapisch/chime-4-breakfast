@@ -15,11 +15,11 @@ You need an Apple Developer account ($99/year) for a Developer ID certificate.
    ```bash
    xcrun notarytool store-credentials chime-4-breakfast \
      --apple-id "you@example.com" \
-     --team-id "TEAMID" \
-     --password "app-specific-password"
+     --team-id "TEAMID"
    ```
 
-   (`chime-4-breakfast` becomes your `NOTARY_PROFILE` name.)
+   `notarytool` will prompt securely and store the credential in Keychain.
+   `chime-4-breakfast` becomes your `NOTARY_PROFILE` name.
 
 ## 2. Build, sign, notarize, package
 

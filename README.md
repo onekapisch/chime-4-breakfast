@@ -10,7 +10,7 @@ Chime 4 Breakfast watches **Codex** and **Claude Desktop** and lets you know the
   <img src="https://img.shields.io/badge/macOS-14%2B-111111?logo=apple&logoColor=white" alt="macOS 14+" />
   <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" alt="Swift 6" />
   <img src="https://img.shields.io/badge/License-MIT-3DA639" alt="MIT License" />
-  <img src="https://img.shields.io/badge/tests-39%20passing-3fb950" alt="39 tests passing" />
+  <img src="https://img.shields.io/badge/tests-47%20passing-3fb950" alt="47 tests passing" />
   <img src="https://img.shields.io/badge/100%25%20local-no%20telemetry-8957E5" alt="100% local, no telemetry" />
   <img src="https://img.shields.io/badge/PRs-welcome-FF4D5E" alt="PRs welcome" />
 </p>
@@ -42,7 +42,7 @@ It's native, tiny, and lives in your menu bar. Everything happens on your Mac.
 
 - **Watches Codex & Claude Desktop** through the macOS Accessibility layer and fires **once per finished response**.
 - **Two distinct signals** — a soft cue when a reply simply completes, a bolder cue when it looks like it's asking you something.
-- **Full-screen edge glow** in the source app's icon color — completion fades quickly; attention pulses until you look.
+- **Full-screen edge glow** in the source app's icon color — completion fades quickly; attention gives a stronger brief pulse and then clears.
 - **14 built-in sounds** with live preview, assignable per signal.
 - **Optional notification banners** for a classic Notification Center ping.
 - **Quiet hours, custom attention phrases, launch at login**, and a compact local activity log.
@@ -53,7 +53,7 @@ It's native, tiny, and lives in your menu bar. Everything happens on your Mac.
 
 ## 🌗 The signature: screen-edge glow
 
-Sound is great until your speakers are muted or you're in another room. The glow is the part people keep. Chime uses the source app's icon color, so Claude and Codex feel distinct without extra setup. Completion gives a quick flash and fades; attention keeps pulsing until you open the popover or the alert ages out.
+Sound is great until your speakers are muted or you're in another room. The glow is the part people keep. Chime uses the source app's icon color, so Claude and Codex feel distinct without extra setup. Completion gives a quick flash and fades; attention gives a stronger brief pulse without leaving a persistent overlay on screen.
 
 ## 🔊 Sounds
 
@@ -70,7 +70,7 @@ Chime 4 Breakfast watches the supported apps through the Accessibility API and t
 - contains a question, or phrases like *"let me know", "which one", "approve", "confirm"* → **Attention**
 - anything else → **Completion**
 
-The rules are deterministic and unit-tested — no model, no network call. If a response is ever misread, the popover's **Capture Diagnostics** action writes exactly what the watcher saw to your Desktop so it can be fixed.
+The rules are deterministic and unit-tested — no model, no network call. If a response is ever misread, the popover's **Capture Diagnostics** action writes a Desktop report containing the Accessibility text visible to Chime, including snippets of prompts/replies that were on screen. Nothing is uploaded unless you share that file.
 
 ## 🆚 How it compares
 

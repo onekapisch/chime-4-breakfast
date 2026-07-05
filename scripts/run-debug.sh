@@ -8,7 +8,7 @@ DERIVED_DATA_PATH="$ROOT_DIR/.derived-data"
 cd "$ROOT_DIR"
 
 xcodegen generate >/dev/null
-xcodebuild -scheme Chime4BreakfastApp -derivedDataPath "$DERIVED_DATA_PATH" -destination 'platform=macOS,arch=arm64' build >/dev/null
+xcodebuild -scheme Chime4BreakfastApp -derivedDataPath "$DERIVED_DATA_PATH" -destination 'platform=macOS' build >/dev/null
 
 APP_PATH="$DERIVED_DATA_PATH/Build/Products/Debug/Chime 4 Breakfast.app"
 INSTALL_PATH="$HOME/Applications/Chime 4 Breakfast.app"

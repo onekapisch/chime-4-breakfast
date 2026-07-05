@@ -40,9 +40,10 @@ CI runs the same checks on every pull request.
 ## Reporting detection problems
 
 If Chime 4 Breakfast misses or misclassifies a response, open the popover,
-choose **Capture detection diagnostics**, and attach the generated file (it is
-written to your Desktop). It contains the raw Accessibility strings the watcher
-saw — no data leaves your machine unless you choose to share that file.
+choose **Capture detection diagnostics**, and review the generated Desktop file
+before attaching it. It contains the raw Accessibility strings the watcher saw,
+which can include visible prompt or reply text. No data leaves your machine
+unless you choose to share that file.
 
 ## Regenerating the app icon
 

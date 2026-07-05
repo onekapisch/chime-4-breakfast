@@ -9,7 +9,7 @@
 
 - Per-app sound overrides (different cues for Codex vs Claude)
 - Notification click-to-focus for the source app
-- Quiet-hours option to also suppress the screen glow
+- Optional quiet-hours mode that suppresses sound only while still allowing visual glow
 - Signed/notarized DMG release dry run with real Developer ID credentials
 
 ## P3
@@ -22,7 +22,7 @@
 ## Done
 
 - Stop-edge finish detector with confirm sampling, duplicate suppression, and away-state memory
-- Full-screen app-color edge glow with completion flash, persistent attention pulse, and preview
+- Full-screen app-color edge glow with completion flash, brief attention pulse, and preview
 - Assistant-turn message selection for labeled Codex/Claude transcript text
 - Reduced AX work by avoiding full text extraction while responses are still streaming
 - Diagnostics capture for raw AX text, selected message, classification, and generating state

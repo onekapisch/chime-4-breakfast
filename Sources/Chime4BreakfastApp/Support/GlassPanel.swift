@@ -66,26 +66,6 @@ struct SectionBlock<Content: View>: View {
     }
 }
 
-/// Kept for compatibility where a bare card is still useful.
-struct GlassPanel<Content: View>: View {
-    let content: Content
-
-    init(@ViewBuilder content: () -> Content) {
-        self.content = content()
-    }
-
-    var body: some View {
-        content
-            .padding(14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .strokeBorder(Color.white.opacity(0.09), lineWidth: 1)
-            )
-    }
-}
-
 /// A settings row with room to breathe: 13 pt title, optional muted subtitle,
 /// trailing control. Rows stack inside a SectionBlock separated by RowDivider.
 struct CompactRow<Trailing: View>: View {

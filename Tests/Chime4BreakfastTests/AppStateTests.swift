@@ -26,6 +26,19 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(state.status, .permissionRequired)
     }
 
+    func test_startup_requests_notification_authorization_when_saved_preference_is_enabled() {
+        let notifications = TestNotificationPresenter()
+
+        _ = AppState(
+            preferencesStore: isolatedPreferencesStore { preferences in
+                preferences.notificationsEnabled = true
+            },
+            notificationPresenter: notifications
+        )
+
+        XCTAssertEqual(notifications.authorizationRequestCount, 1)
+    }
+
     func test_status_detail_reports_waiting_when_no_supported_apps_are_running() {
         let probe = TestAccessibilityProbe()
         probe.statusToSend = (true, [])
@@ -52,7 +65,7 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(state.statusDetail, "Watching Codex for finished responses.")
     }
 
-    func test_attention_snapshot_uses_persistent_attention_glow_when_user_was_away() {
+    func test_attention_snapshot_uses_attention_glow_when_user_was_away() {
         let probe = TestAccessibilityProbe()
         let glow = TestScreenGlowPresenter()
         let state = AppState(
@@ -277,5 +290,19 @@ private final class TestScreenGlowPresenter: ScreenGlowPresenting {
 
     func dismiss() {
         events.append(.dismiss)
+    }
+}
+
+@MainActor
+private final class TestNotificationPresenter: NotificationPresenting {
+    private(set) var authorizationRequestCount = 0
+    private(set) var presented: [(title: String, body: String)] = []
+
+    func requestAuthorizationIfNeeded() {
+        authorizationRequestCount += 1
+    }
+
+    func present(title: String, body: String) {
+        presented.append((title, body))
     }
 }

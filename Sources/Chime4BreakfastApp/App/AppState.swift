@@ -28,7 +28,7 @@ final class AppState: ObservableObject {
     private let accessibilityAuthorizer: any AccessibilityAuthorizing
     private let screenGlowController: any ScreenGlowPresenting
     private let loginItemController: any LoginItemControlling
-    private let notificationPresenter: NotificationPresenter
+    private let notificationPresenter: any NotificationPresenting
     private let classifier = MessageClassifier()
     private var appColorCache: [TargetApp: Color] = [:]
     private var cancellables: Set<AnyCancellable> = []
@@ -44,7 +44,7 @@ final class AppState: ObservableObject {
         accessibilityAuthorizer: any AccessibilityAuthorizing = AccessibilityAuthorizer(),
         screenGlowController: any ScreenGlowPresenting = ScreenGlowController(),
         loginItemController: any LoginItemControlling = LoginItemController(),
-        notificationPresenter: NotificationPresenter = NotificationPresenter()
+        notificationPresenter: any NotificationPresenting = NotificationPresenter()
     ) {
         self.preferencesStore = preferencesStore
         self.activityStore = activityStore
@@ -58,6 +58,9 @@ final class AppState: ObservableObject {
         self.preferences = preferencesStore.preferences
         self.recentActivity = activityStore.items
         self.launchAtLoginEnabled = loginItemController.isEnabled()
+        if preferences.notificationsEnabled {
+            notificationPresenter.requestAuthorizationIfNeeded()
+        }
 
         preferencesStore.$preferences
             .sink { [weak self] in self?.preferences = $0 }

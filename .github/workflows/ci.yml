@@ -27,9 +27,14 @@ jobs:
 
       - name: Run tests
         run: |
-          set -o pipefail
           xcodebuild test \
             -scheme Chime4BreakfastApp \
             -destination 'platform=macOS' \
-            -resultBundlePath TestResults.xcresult \
-            | xcpretty || xcodebuild test -scheme Chime4BreakfastApp -destination 'platform=macOS'
+            -resultBundlePath TestResults.xcresult
+
+      - name: Build app
+        run: |
+          xcodebuild \
+            -scheme Chime4BreakfastApp \
+            -destination 'platform=macOS' \
+            build

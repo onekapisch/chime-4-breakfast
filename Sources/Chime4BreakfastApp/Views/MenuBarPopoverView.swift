@@ -3,6 +3,7 @@ import SwiftUI
 
 struct MenuBarPopoverView: View {
     @EnvironmentObject private var appState: AppState
+    @State private var showingDiagnosticsWarning = false
 
     var body: some View {
         ZStack {
@@ -27,6 +28,10 @@ struct MenuBarPopoverView: View {
                 endRadius: 320
             )
             .ignoresSafeArea()
+
+            NoiseTexture()
+                .opacity(0.28)
+                .ignoresSafeArea()
 
             VStack(spacing: 0) {
                 header
@@ -66,6 +71,14 @@ struct MenuBarPopoverView: View {
         .preferredColorScheme(.dark)
         .onAppear {
             appState.acknowledgeAttention()
+        }
+        .alert("Capture Diagnostics?", isPresented: $showingDiagnosticsWarning) {
+            Button("Cancel", role: .cancel) {}
+            Button("Capture") {
+                appState.captureDiagnostics()
+            }
+        } message: {
+            Text("This writes a Desktop report with visible Accessibility text from Codex and Claude, including snippets of prompts or replies on screen.")
         }
     }
 
@@ -135,7 +148,7 @@ struct MenuBarPopoverView: View {
             .controlSize(.small)
 
             Button {
-                appState.captureDiagnostics()
+                showingDiagnosticsWarning = true
             } label: {
                 Image(systemName: "waveform.badge.magnifyingglass")
                     .font(.system(size: 11, weight: .medium))

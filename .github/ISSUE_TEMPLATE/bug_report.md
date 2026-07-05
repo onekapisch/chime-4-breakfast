@@ -16,8 +16,8 @@ What you expected instead.
 ## Detection issue?
 
 If a response was missed or misclassified, attach the file from
-**Capture detection diagnostics** (popover → General). It is written to your
-Desktop.
+**Capture detection diagnostics** only after reviewing it for private content.
+It is written to your Desktop and may include visible prompt/reply text.
 
 ## Environment
 
