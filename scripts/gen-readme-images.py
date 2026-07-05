@@ -20,19 +20,28 @@ BLUE = (79, 123, 255)
 VIOLET = (139, 92, 246)
 
 
-def font(size, bold=False):
-    tries = (
-        [("/System/Library/Fonts/Supplemental/Arial Bold.ttf", 0),
-         ("/System/Library/Fonts/Helvetica.ttc", 1)]
-        if bold else
-        [("/System/Library/Fonts/SFNS.ttf", 0),
-         ("/System/Library/Fonts/Helvetica.ttc", 0),
-         ("/System/Library/Fonts/Supplemental/Arial.ttf", 0)]
-    )
-    for path, idx in tries:
+def font(size, bold=False, weight=None, display=False):
+    """Prefer SF Pro Display (headings) / SF Pro Text (body) at a given weight.
+
+    `bold=True` is kept for older callers and maps to the Bold weight. Pass an
+    explicit `weight` (e.g. "Semibold", "Heavy") and `display=True` for the
+    large display cut used on the hero title and tagline.
+    """
+    if weight is None:
+        weight = "Bold" if bold else "Regular"
+    fam = "Display" if display else "Text"
+    tries = [
+        f"/Library/Fonts/SF-Pro-{fam}-{weight}.otf",
+        f"/Library/Fonts/SF-Pro-Text-{weight}.otf",
+        f"/Library/Fonts/SF-Pro-Display-{weight}.otf",
+        "/System/Library/Fonts/SFNS.ttf",
+        "/System/Library/Fonts/Supplemental/Arial Bold.ttf" if bold
+        else "/System/Library/Fonts/Supplemental/Arial.ttf",
+    ]
+    for path in tries:
         if os.path.exists(path):
             try:
-                return ImageFont.truetype(path, size, index=idx)
+                return ImageFont.truetype(path, size)
             except Exception:
                 continue
     return ImageFont.load_default()
@@ -96,62 +105,70 @@ def wrap(draw, text, fnt, max_w):
 
 def pill(draw, xy, text, fnt, dot=None):
     x, y = xy
-    pad_x, h = 15, 34
+    pad_x, h = 24, 50
     tw = draw.textlength(text, font=fnt)
-    extra = 22 if dot else 0
+    extra = 32 if dot else 0
     w = int(tw + pad_x * 2 + extra)
-    draw.rounded_rectangle([x, y, x + w, y + h], radius=h // 2, fill=(255, 255, 255, 16),
-                           outline=(255, 255, 255, 30), width=1)
+    # dark glass fill + a strong colored ring, so bright white text pops clearly
+    ring = (dot + (220,)) if dot else (255, 255, 255, 110)
+    draw.rounded_rectangle([x, y, x + w, y + h], radius=h // 2,
+                           fill=(16, 18, 26, 165), outline=ring, width=2)
     tx = x + pad_x
     if dot:
         cy = y + h // 2
-        draw.ellipse([tx, cy - 4, tx + 8, cy + 4], fill=dot)
+        r = 7
+        draw.ellipse([tx, cy - r, tx + 2 * r, cy + r], fill=dot)
         tx += extra
-    draw.text((tx, y + h / 2), text, font=fnt, fill=(220, 224, 235, 255), anchor="lm")
+    draw.text((tx, y + h / 2), text, font=fnt, fill=(255, 255, 255, 255), anchor="lm")
     return w
 
 
 # ---------------------------------------------------------------- hero
 def build_hero():
-    W, H = 1680, 620
+    W, H = 1680, 700
     img = vgrad((W, H), (20, 20, 29), (7, 7, 11)).convert("RGBA")
-    glow(img, (300, 150), 900, BLUE, 46)
-    glow(img, (830, 640), 1000, VIOLET, 30)
-    glow(img, (1520, 90), 640, CLAUDE, 26)
+    glow(img, (300, 170), 960, BLUE, 46)
+    glow(img, (840, 720), 1040, VIOLET, 30)
+    glow(img, (1520, 100), 660, CLAUDE, 26)
 
     draw = ImageDraw.Draw(img)
 
-    icon = Image.open(ICON).convert("RGBA").resize((188, 188), Image.LANCZOS)
-    ishadow = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    isize = 210
+    ix, iy = 100, 150
     sh = Image.new("L", img.size, 0)
-    ImageDraw.Draw(sh).rounded_rectangle([96, 118, 96 + 188, 118 + 188], radius=42, fill=150)
+    ImageDraw.Draw(sh).rounded_rectangle([ix, iy, ix + isize, iy + isize], radius=46, fill=150)
     sh = sh.filter(ImageFilter.GaussianBlur(34))
     blk = Image.new("RGBA", img.size, (0, 0, 0, 255)); blk.putalpha(sh)
     img.alpha_composite(blk)
-    img.alpha_composite(icon, (96, 118))
+    icon = Image.open(ICON).convert("RGBA").resize((isize, isize), Image.LANCZOS)
+    img.alpha_composite(icon, (ix, iy))
 
-    x = 322
-    draw.text((x, 144), "Chime 4 Breakfast", font=font(64, bold=True), fill=(255, 255, 255))
-    draw.text((x, 228), "No need to keep watching AI think.", font=font(30), fill=(196, 201, 214))
+    x = 350
+    draw.text((x, 168), "Chime 4 Breakfast",
+              font=font(90, weight="Bold", display=True), fill=(255, 255, 255))
+    draw.text((x, 282), "No need to keep watching AI think.",
+              font=font(42, weight="Semibold", display=True), fill=(214, 218, 230))
+
+    body_font = font(26, weight="Regular", display=True)
     for i, line in enumerate(wrap(draw,
             "Move on to another task. C4B notifies you the moment Codex or Claude "
             "Desktop needs you or finishes a reply. A sound, plus a screen-edge glow "
             "when you have stepped away.",
-            font(21), 650)):
-        draw.text((x, 288 + i * 30), line, font=font(21), fill=(146, 151, 166))
+            body_font, 780)):
+        draw.text((x, 356 + i * 38), line, font=body_font, fill=(170, 175, 190))
 
     px = x
-    py = 430
-    fp = font(15, bold=True)
-    px += pill(draw, (px, py), "100% local", fp, dot=(61, 185, 120)) + 10
-    px += pill(draw, (px, py), "Screen glow", fp, dot=BLUE) + 10
+    py = 500
+    fp = font(21, weight="Semibold")
+    px += pill(draw, (px, py), "100% local", fp, dot=(61, 185, 120)) + 14
+    px += pill(draw, (px, py), "Screen glow", fp, dot=BLUE) + 14
     pill(draw, (px, py), "Codex & Claude", fp, dot=CLAUDE)
 
     if os.path.exists(POPOVER):
         pop = Image.open(POPOVER).convert("RGBA")
-        scale = 520 / pop.height
-        pop = pop.resize((int(pop.width * scale), 520), Image.LANCZOS)
-        card = framed(pop, radius=34, blur=40, offset=(0, 20), pad=70)
+        scale = 560 / pop.height
+        pop = pop.resize((int(pop.width * scale), 560), Image.LANCZOS)
+        card = framed(pop, radius=34, blur=40, offset=(0, 20), pad=68)
         img.alpha_composite(card, (W - card.width - 60, (H - card.height) // 2))
 
     img.convert("RGB").save(os.path.join(ASSETS, "hero.png"))
