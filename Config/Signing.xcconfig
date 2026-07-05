@@ -1,0 +1,20 @@
+// Code-signing configuration for Chime 4 Breakfast.
+//
+// Default: ad-hoc signing ("-"), so anyone can clone and build with no Apple
+// account, and CI stays green. Ad-hoc builds work fine, BUT their code
+// signature changes on every build, so macOS re-asks for Accessibility
+// permission each time you rebuild.
+//
+// To make the Accessibility grant stick across rebuilds, sign with a stable
+// Apple Development identity. Run `scripts/setup-signing.sh` once; it writes a
+// gitignored Config/Local.xcconfig with your identity + team, which the
+// optional include below picks up and layers on top of these defaults.
+
+CODE_SIGN_STYLE = Manual
+CODE_SIGN_IDENTITY = -
+DEVELOPMENT_TEAM =
+PROVISIONING_PROFILE_SPECIFIER =
+
+// Optional, gitignored per-machine override (created by setup-signing.sh).
+// The `?` makes it silently skipped when the file does not exist.
+#include? "Local.xcconfig"

@@ -19,6 +19,9 @@ targets:
     type: application
     platform: macOS
     deploymentTarget: "14.0"
+    configFiles:
+      Debug: Config/Signing.xcconfig
+      Release: Config/Signing.xcconfig
     sources:
       - path: Sources/Chime4BreakfastApp
     resources:

@@ -102,7 +102,15 @@ Or build and launch straight from the terminal:
 ./scripts/run-debug.sh
 ```
 
-The debug launcher installs one canonical app at `~/Applications/Chime 4 Breakfast.app`. If an Apple Development signing identity is available, it signs that app before launch so macOS Accessibility permission survives rebuilds.
+The debug launcher installs one canonical app at `~/Applications/Chime 4 Breakfast.app`.
+
+**Tired of macOS re-asking for Accessibility on every build?** That happens because a default (ad-hoc) signature changes each build, so macOS treats every rebuild as a new app. Run this once to sign every build with your stable Apple Development identity:
+
+```bash
+./scripts/setup-signing.sh
+```
+
+It detects your identity and team, writes a gitignored `Config/Local.xcconfig`, and clears the stale grant. Grant Accessibility one more time after that and it sticks across all future rebuilds, whether you launch from Xcode, `xcodebuild`, or the debug script.
 
 On first launch, grant **Accessibility** access when prompted (System Settings → Privacy & Security → Accessibility), keep Codex or Claude open on a conversation, and wait for a response to finish. You will hear the sound; if you switched away while it worked, you will also see the glow.
 
@@ -142,6 +150,8 @@ PRs and ideas are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, con
 **Can I use my own sounds?** There are 14 built in for now; custom import is planned. You can also run sound-free and keep only the glow.
 
 **Why is it not on the Mac App Store?** Reading another app's UI requires Accessibility, which is not allowed under the App Sandbox, so it ships as a notarized DMG or build-from-source instead.
+
+**macOS keeps re-asking for Accessibility permission every time I build.** Default builds are ad-hoc signed, and that signature changes on every build, so macOS sees a new app each time. Run `./scripts/setup-signing.sh` once to sign with your stable Apple Development identity; after granting one more time, the permission persists across rebuilds.
 
 ---
 
