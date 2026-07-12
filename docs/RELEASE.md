@@ -32,7 +32,7 @@ NOTARY_PROFILE="chime-4-breakfast" \
 ./scripts/build-release.sh
 ```
 
-This produces a signed, notarized, stapled `Chime 4 Breakfast.dmg` and a
+This produces a signed, notarized, stapled `Chime-4-Breakfast.dmg` and a
 SHA-256 checksum file in `.release/`. The script mounts the final DMG and asks
 Gatekeeper to assess the contained app, so it exits non-zero unless the
 notarized installer is accepted.
