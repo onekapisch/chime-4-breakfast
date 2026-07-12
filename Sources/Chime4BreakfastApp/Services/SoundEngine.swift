@@ -10,9 +10,18 @@ protocol SoundPlaying: AnyObject {
 @MainActor
 final class SoundEngine: SoundPlaying {
     private var activePlayer: AVAudioPlayer?
+    private let speechSynthesizer = AVSpeechSynthesizer()
 
     @discardableResult
     func play(soundID: String) -> Bool {
+        if let spokenText = spokenText(for: soundID) {
+            activePlayer?.stop()
+            speechSynthesizer.stopSpeaking(at: .immediate)
+            speechSynthesizer.speak(AVSpeechUtterance(string: spokenText))
+            chimeDebugLog("SOUND speech id=\(soundID) queued=true")
+            return true
+        }
+
         guard let option = SoundOption.option(for: soundID) else {
             chimeDebugLog("SOUND invalid id=\(soundID)")
             return false
@@ -56,5 +65,16 @@ final class SoundEngine: SoundPlaying {
 
         return Bundle.main.url(forResource: name, withExtension: ext)
             ?? Bundle.main.url(forResource: name, withExtension: ext, subdirectory: "Sounds")
+    }
+
+    private func spokenText(for soundID: String) -> String? {
+        switch soundID {
+        case "spoken-codex":
+            "Codex"
+        case "spoken-claude":
+            "Claude"
+        default:
+            nil
+        }
     }
 }

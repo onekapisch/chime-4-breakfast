@@ -13,6 +13,11 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 
+if [[ -n "${NOTARY_PROFILE:-}" && -z "${DEVELOPER_ID:-}" ]]; then
+  echo "NOTARY_PROFILE requires DEVELOPER_ID so the app is signed before notarization." >&2
+  exit 1
+fi
+
 BUILD_DIR="$ROOT_DIR/.release"
 DERIVED="$BUILD_DIR/DerivedData"
 APP_NAME="Chime 4 Breakfast"
@@ -26,6 +31,7 @@ xcodegen generate >/dev/null
 
 echo "==> Building Release"
 xcodebuild \
+  -project Chime4Breakfast.xcodeproj \
   -scheme Chime4BreakfastApp \
   -configuration Release \
   -derivedDataPath "$DERIVED" \
@@ -58,8 +64,26 @@ if [[ -n "${NOTARY_PROFILE:-}" ]]; then
   echo "==> Notarizing"
   xcrun notarytool submit "$DMG_PATH" --keychain-profile "$NOTARY_PROFILE" --wait
   xcrun stapler staple "$DMG_PATH"
+  xcrun stapler validate "$DMG_PATH"
+
+  VERIFY_MOUNT="$(mktemp -d "${TMPDIR:-/tmp}/chime4breakfast-release.XXXXXX")"
+  cleanup_verification_mount() {
+    hdiutil detach "$VERIFY_MOUNT" >/dev/null 2>&1 || true
+    rmdir "$VERIFY_MOUNT" >/dev/null 2>&1 || true
+  }
+  trap cleanup_verification_mount EXIT
+
+  echo "==> Verifying Gatekeeper acceptance"
+  hdiutil attach -readonly -nobrowse -mountpoint "$VERIFY_MOUNT" "$DMG_PATH" >/dev/null
+  spctl --assess --type execute --verbose=4 "$VERIFY_MOUNT/$APP_NAME.app"
+  cleanup_verification_mount
+  trap - EXIT
 else
   echo "==> Skipping notarization (set NOTARY_PROFILE to enable)"
 fi
 
+CHECKSUM_PATH="$DMG_PATH.sha256"
+shasum -a 256 "$DMG_PATH" > "$CHECKSUM_PATH"
+
 echo "Done: $DMG_PATH"
+echo "SHA-256: $CHECKSUM_PATH"

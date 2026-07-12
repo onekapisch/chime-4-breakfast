@@ -6,7 +6,12 @@ protocol ScreenGlowPresenting: AnyObject {
     func flashCompletion(color: Color, intensity: Double)
     func showAttention(color: Color, intensity: Double)
     func preview(color: Color, intensity: Double)
+    func updatePreview(intensity: Double)
     func dismiss()
+}
+
+extension ScreenGlowPresenting {
+    func updatePreview(intensity: Double) {}
 }
 
 /// Drives a transparent, click-through overlay window on every screen and
@@ -17,6 +22,7 @@ final class ScreenGlowController: ScreenGlowPresenting {
     private let model = GlowOverlayModel()
     private var autoDismissTask: Task<Void, Never>?
     private var teardownTask: Task<Void, Never>?
+    private var isPreviewing = false
     // The glow is a nudge, not an overlay: about one fully-visible second
     // (fade-in is near-instant), then a gentle fade-out.
     private let completionFlashDuration: TimeInterval = 1.2
@@ -25,6 +31,7 @@ final class ScreenGlowController: ScreenGlowPresenting {
 
     func flashCompletion(color: Color, intensity: Double) {
         chimeDebugLog("GLOW completion.requested intensity=\(intensity)")
+        isPreviewing = false
         present(color: color, pulsing: false, intensity: intensity)
         scheduleAutoDismiss(after: completionFlashDuration)
     }
@@ -33,19 +40,29 @@ final class ScreenGlowController: ScreenGlowPresenting {
     /// auto-dismisses - the glow is a nudge, never a lingering overlay.
     func showAttention(color: Color, intensity: Double) {
         chimeDebugLog("GLOW attention.requested intensity=\(intensity)")
+        isPreviewing = false
         present(color: color, pulsing: true, intensity: intensity)
         scheduleAutoDismiss(after: attentionPulseDuration)
     }
 
     func preview(color: Color, intensity: Double) {
         chimeDebugLog("GLOW preview.requested intensity=\(intensity)")
+        isPreviewing = true
         present(color: color, pulsing: false, intensity: intensity)
         scheduleAutoDismiss(after: previewFlashDuration)
+    }
+
+    func updatePreview(intensity: Double) {
+        guard isPreviewing, model.visible else { return }
+
+        model.configuration = GlowConfiguration(intensity: intensity)
+        chimeDebugLog("GLOW preview.updated intensity=\(model.configuration.intensity)")
     }
 
     func dismiss() {
         autoDismissTask?.cancel()
         autoDismissTask = nil
+        isPreviewing = false
 
         guard !windows.isEmpty else { return }
 
@@ -76,17 +93,14 @@ final class ScreenGlowController: ScreenGlowPresenting {
             buildWindows()
         }
 
-        // 0.7 is the lowest clearly-visible level for a ~1 s flash seen from
-        // another window; the settings slider shares this floor so what you set
-        // is what you get.
-        let clampedIntensity = min(max(intensity, 0.7), 1.0)
+        let configuration = GlowConfiguration(intensity: intensity)
         model.color = color
         model.pulsing = pulsing
-        model.intensity = clampedIntensity
+        model.configuration = configuration
         model.visible = false
         let hexColor = color.hexString() ?? "unknown"
         chimeDebugLog(
-            "GLOW present windows=\(windows.count) pulsing=\(pulsing) intensity=\(clampedIntensity) color=\(hexColor)"
+            "GLOW present windows=\(windows.count) pulsing=\(pulsing) intensity=\(configuration.intensity) color=\(hexColor)"
         )
 
         // Flip to visible on the next runloop so the opacity transition animates

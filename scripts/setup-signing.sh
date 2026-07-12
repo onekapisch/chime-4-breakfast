@@ -7,8 +7,9 @@
 # changes on every build. macOS keys the Accessibility grant to the signature,
 # so each rebuild looks like a brand-new app and you get prompted again.
 #
-# The fix: sign every build with your stable Apple Development identity. This
-# script detects that identity + your team, writes a gitignored
+# The fix: sign every build with the stable Developer ID identity used for a
+# release whenever one is available. This script detects that identity + your
+# team, writes a gitignored
 # Config/Local.xcconfig that the build picks up, regenerates the project, and
 # clears any stale permission entries so you grant access exactly once.
 
@@ -20,15 +21,24 @@ cd "$ROOT_DIR"
 BUNDLE_ID="app.chime4breakfast"
 LOCAL_XCCONFIG="Config/Local.xcconfig"
 
-echo "Looking for an Apple Development signing identity..."
+echo "Looking for a Developer ID Application signing identity..."
 IDENTITY="$(
   security find-identity -v -p codesigning 2>/dev/null \
-    | sed -n 's/.*"\(Apple Development: [^"]*\)".*/\1/p' \
+    | sed -n 's/.*"\(Developer ID Application: [^"]*\)".*/\1/p' \
     | head -n 1
 )"
 
 if [[ -z "$IDENTITY" ]]; then
-  echo "No 'Apple Development' identity found in your keychain." >&2
+  echo "No Developer ID Application identity found; falling back to Apple Development." >&2
+  IDENTITY="$(
+    security find-identity -v -p codesigning 2>/dev/null \
+    | sed -n 's/.*"\(Apple Development: [^"]*\)".*/\1/p' \
+    | head -n 1
+)"
+fi
+
+if [[ -z "$IDENTITY" ]]; then
+  echo "No code-signing identity found in your keychain." >&2
   echo "Open Xcode > Settings > Accounts, add your Apple ID, and let it create" >&2
   echo "a development certificate, then run this script again." >&2
   exit 1

@@ -11,6 +11,8 @@ final class SoundCatalogTests: XCTestCase {
         XCTAssertTrue(ids.contains("tick"))
         XCTAssertTrue(ids.contains("horn"))
         XCTAssertTrue(ids.contains("coin"))
+        XCTAssertTrue(ids.contains("spoken-codex"))
+        XCTAssertTrue(ids.contains("spoken-claude"))
     }
 
     @MainActor
@@ -22,6 +24,13 @@ final class SoundCatalogTests: XCTestCase {
         let player = activePlayer(from: engine)
         XCTAssertNotNil(player)
         XCTAssertEqual(player?.volume, 1.0)
+    }
+
+    @MainActor
+    func test_system_spoken_cue_starts_speaking_without_a_bundled_audio_file() {
+        let engine = SoundEngine()
+
+        XCTAssertTrue(engine.play(soundID: "spoken-codex"))
     }
 
     @MainActor

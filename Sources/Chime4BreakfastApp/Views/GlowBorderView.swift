@@ -7,7 +7,7 @@ final class GlowOverlayModel: ObservableObject {
     @Published var color: Color = .green
     @Published var visible: Bool = false
     @Published var pulsing: Bool = false
-    @Published var intensity: Double = 1.0
+    @Published var configuration = GlowConfiguration(intensity: 1.0)
 }
 
 /// A soft ambient glow that hugs the screen edges and fades inward - no hard
@@ -20,17 +20,18 @@ struct GlowBorderView: View {
     var body: some View {
         GeometryReader { proxy in
             let radius = min(proxy.size.width, proxy.size.height) * 0.05
-            let bandWidth = min(max(min(proxy.size.width, proxy.size.height) * 0.10, 92), 150)
+            let fullBandWidth = min(max(min(proxy.size.width, proxy.size.height) * 0.10, 92), 150)
+            let bandWidth = fullBandWidth * model.configuration.bandWidthScale
 
             ZStack {
                 edgeBands(width: bandWidth)
 
                 border(radius: radius)
-                    .stroke(model.color.opacity(0.7), lineWidth: 16)
-                    .blur(radius: 18)
+                    .stroke(model.color.opacity(model.configuration.haloOpacity), lineWidth: model.configuration.haloWidth)
+                    .blur(radius: model.configuration.haloWidth)
 
                 border(radius: radius)
-                    .stroke(model.color.opacity(0.95), lineWidth: 3.5)
+                    .stroke(model.color.opacity(model.configuration.borderOpacity), lineWidth: model.configuration.borderWidth)
                     .blur(radius: 1.5)
             }
             .opacity(currentOpacity)
@@ -38,6 +39,7 @@ struct GlowBorderView: View {
             // fading; ease out gently on dismiss.
             .animation(.easeOut(duration: model.visible ? 0.1 : 0.4), value: model.visible)
             .animation(.easeInOut(duration: 0.4), value: model.color)
+            .animation(.easeInOut(duration: 0.16), value: model.configuration)
         }
         .ignoresSafeArea()
         .allowsHitTesting(false)
@@ -55,7 +57,7 @@ struct GlowBorderView: View {
                 Rectangle()
                     .fill(
                         LinearGradient(
-                            colors: [model.color.opacity(0.9), model.color.opacity(0.32), .clear],
+                            colors: [model.color.opacity(model.configuration.haloOpacity), model.color.opacity(model.configuration.haloOpacity * 0.36), .clear],
                             startPoint: .top,
                             endPoint: .bottom
                         )
@@ -67,7 +69,7 @@ struct GlowBorderView: View {
                 Rectangle()
                     .fill(
                         LinearGradient(
-                            colors: [.clear, model.color.opacity(0.32), model.color.opacity(0.9)],
+                            colors: [.clear, model.color.opacity(model.configuration.haloOpacity * 0.36), model.color.opacity(model.configuration.haloOpacity)],
                             startPoint: .top,
                             endPoint: .bottom
                         )
@@ -79,7 +81,7 @@ struct GlowBorderView: View {
                 Rectangle()
                     .fill(
                         LinearGradient(
-                            colors: [model.color.opacity(0.9), model.color.opacity(0.32), .clear],
+                            colors: [model.color.opacity(model.configuration.haloOpacity), model.color.opacity(model.configuration.haloOpacity * 0.36), .clear],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
@@ -91,7 +93,7 @@ struct GlowBorderView: View {
                 Rectangle()
                     .fill(
                         LinearGradient(
-                            colors: [.clear, model.color.opacity(0.32), model.color.opacity(0.9)],
+                            colors: [.clear, model.color.opacity(model.configuration.haloOpacity * 0.36), model.color.opacity(model.configuration.haloOpacity)],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
@@ -103,8 +105,7 @@ struct GlowBorderView: View {
 
     private var currentOpacity: Double {
         guard model.visible else { return 0 }
-        let base = model.pulsing ? (pulseUp ? 1.0 : 0.5) : 1.0
-        return base * model.intensity
+        return model.pulsing ? (pulseUp ? 1.0 : 0.5) : 1.0
     }
 
     private func updatePulse(_ isPulsing: Bool) {

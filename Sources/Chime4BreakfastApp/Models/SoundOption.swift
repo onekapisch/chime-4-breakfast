@@ -19,7 +19,9 @@ struct SoundOption: Identifiable, Codable, Equatable {
         .init(id: "spark", title: "Spark", filename: "spark.wav"),
         .init(id: "knock", title: "Knock", filename: "knock.wav"),
         .init(id: "drift", title: "Drift", filename: "drift.wav"),
-        .init(id: "flare", title: "Flare", filename: "flare.wav")
+        .init(id: "flare", title: "Flare", filename: "flare.wav"),
+        .init(id: "spoken-codex", title: "Speak: Codex", filename: "spoken-codex.wav"),
+        .init(id: "spoken-claude", title: "Speak: Claude", filename: "spoken-claude.wav")
     ]
 
     static func option(for id: String) -> SoundOption? {

@@ -8,7 +8,17 @@ struct StatusBanner: View {
     @EnvironmentObject private var appState: AppState
 
     var body: some View {
-        switch appState.status {
+        if let issue = appState.issue {
+            banner(
+                icon: issue.iconName,
+                tint: ColorTokens.coral,
+                message: issue.message,
+                actionTitle: "Dismiss"
+            ) {
+                appState.dismissIssue()
+            }
+        } else {
+            switch appState.status {
         case .permissionRequired:
             banner(
                 icon: "hand.raised.fill",
@@ -37,6 +47,7 @@ struct StatusBanner: View {
             )
         case .idle, .watching, .attention:
             EmptyView()
+            }
         }
     }
 

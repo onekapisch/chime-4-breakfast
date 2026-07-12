@@ -134,6 +134,22 @@ final class FinishEdgeDetectorTests: XCTestCase {
         XCTAssertEqual(snapshot?.userWasAway, true)
     }
 
+    func test_low_confidence_change_does_not_use_fast_completion_fallback() {
+        let detector = FinishEdgeDetector()
+        detector.reset(watching: [.codex])
+
+        _ = detector.process(app: .codex, generating: false, message: "Previous response.", allowsFastFallback: true, isFrontmost: true, fingerprint: testFingerprint)
+
+        XCTAssertNil(detector.process(
+            app: .codex,
+            generating: false,
+            message: "Text from an unverified window changed after the user left.",
+            allowsFastFallback: false,
+            isFrontmost: false,
+            fingerprint: testFingerprint
+        ))
+    }
+
     func test_frontmost_fast_completion_updates_baseline_without_later_false_away_alert() {
         let detector = FinishEdgeDetector()
         detector.reset(watching: [.codex])

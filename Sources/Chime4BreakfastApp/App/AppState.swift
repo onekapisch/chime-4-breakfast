@@ -19,6 +19,7 @@ final class AppState: ObservableObject {
     @Published private(set) var recentActivity: [ActivityItem] = []
     @Published private(set) var runningApps: Set<TargetApp> = []
     @Published private(set) var launchAtLoginEnabled: Bool = false
+    @Published private(set) var issue: AppIssue?
 
     private let preferencesStore: PreferencesStore
     private let activityStore: ActivityStore
@@ -59,7 +60,7 @@ final class AppState: ObservableObject {
         self.recentActivity = activityStore.items
         self.launchAtLoginEnabled = loginItemController.isEnabled()
         if preferences.notificationsEnabled {
-            notificationPresenter.requestAuthorizationIfNeeded()
+            requestNotificationPermission()
         }
 
         preferencesStore.$preferences
@@ -169,6 +170,16 @@ final class AppState: ObservableObject {
         preferencesStore.preferences = preferences
     }
 
+    func setSound(_ soundID: String, for app: TargetApp) {
+        preferences.setSoundID(soundID, for: app)
+        preferencesStore.preferences = preferences
+    }
+
+    func setSoundRoutingMode(_ mode: SoundRoutingMode) {
+        preferences.soundRoutingMode = mode
+        preferencesStore.preferences = preferences
+    }
+
     func setAlertsEnabled(_ enabled: Bool, for eventType: NotificationEventType) {
         preferences.setAlertsEnabled(enabled, for: eventType)
         preferencesStore.preferences = preferences
@@ -189,6 +200,11 @@ final class AppState: ObservableObject {
         preferencesStore.preferences = preferences
     }
 
+    func setQuietHoursMode(_ mode: QuietHoursMode) {
+        preferences.quietHoursMode = mode
+        preferencesStore.preferences = preferences
+    }
+
     func setScreenGlowEnabled(_ enabled: Bool) {
         preferences.screenGlowEnabled = enabled
         preferencesStore.preferences = preferences
@@ -201,7 +217,7 @@ final class AppState: ObservableObject {
         preferences.notificationsEnabled = enabled
         preferencesStore.preferences = preferences
         if enabled {
-            notificationPresenter.requestAuthorizationIfNeeded()
+            requestNotificationPermission()
         }
     }
 
@@ -219,8 +235,16 @@ final class AppState: ObservableObject {
     }
 
     func setLaunchAtLogin(_ enabled: Bool) {
-        try? loginItemController.setEnabled(enabled)
+        do {
+            try loginItemController.setEnabled(enabled)
+        } catch {
+            issue = .loginItem(error.localizedDescription)
+        }
         launchAtLoginEnabled = loginItemController.isEnabled()
+    }
+
+    func dismissIssue() {
+        issue = nil
     }
 
     func clearRecentActivity() {
@@ -245,6 +269,7 @@ final class AppState: ObservableObject {
             NSWorkspace.shared.activateFileViewerSelecting([url])
             return url
         } catch {
+            issue = .diagnosticsWrite
             return nil
         }
     }
@@ -253,13 +278,21 @@ final class AppState: ObservableObject {
         soundEngine.play(soundID: preferences.soundID(for: eventType))
     }
 
+    func previewSound(for app: TargetApp) {
+        soundEngine.play(soundID: preferences.soundID(for: app, eventType: .completion))
+    }
+
     func setGlowIntensity(_ intensity: Double) {
-        preferences.glowIntensity = min(max(intensity, 0.7), 1.0)
+        preferences.glowIntensity = GlowConfiguration(intensity: intensity).intensity
         preferencesStore.preferences = preferences
+        screenGlowController.updatePreview(intensity: preferences.glowIntensity)
     }
 
     func previewGlow() {
-        let app = Self.preferredPreviewApp(from: runningApps)
+        previewGlow(for: Self.preferredPreviewApp(from: runningApps))
+    }
+
+    func previewGlow(for app: TargetApp) {
         screenGlowController.preview(color: appGlowColor(for: app), intensity: preferences.glowIntensity)
     }
 
@@ -353,30 +386,29 @@ final class AppState: ObservableObject {
     private func handle(snapshot: WindowSnapshot) {
         guard let observedEvent = appObserver.process(snapshot, extraPhrases: preferences.customAttentionPhrases) else { return }
 
-        // One decision governs every output. Quiet hours and the per-event
-        // toggle mute EVERYTHING together; "away" then picks sound-only vs
-        // sound + glow. The chosen outcome is recorded on the activity item so
-        // the Recent list always explains what happened and why.
         let quietHoursActive = preferences.quietHoursContains(Date())
         let eventEnabled = preferences.alertsEnabled(for: observedEvent.eventType)
         let away = snapshot.userWasAway
-
-        let playSound = eventEnabled && !quietHoursActive
-        let showGlow = playSound && away && preferences.screenGlowEnabled
-        let showBanner = playSound && away && preferences.notificationsEnabled
-
-        let delivery: String
-        if !eventEnabled {
-            delivery = "Muted (\(observedEvent.eventType.title.lowercased()) alerts are off)"
-        } else if quietHoursActive {
-            delivery = "Muted (quiet hours)"
-        } else if showGlow {
-            delivery = "Sound + glow"
-        } else if away {
-            delivery = "Sound only (glow is off)"
+        let quietHours: DeliveryPolicy.QuietHours
+        if quietHoursActive {
+            quietHours = preferences.quietHoursMode == .soundOnly ? .soundOnly : .allSignals
         } else {
-            delivery = "Sound only (you were in the app)"
+            quietHours = .off
         }
+        let output = DeliveryPolicy.decide(
+            eventEnabled: eventEnabled,
+            isAway: away,
+            glowEnabled: preferences.screenGlowEnabled,
+            bannersEnabled: preferences.notificationsEnabled,
+            quietHours: quietHours
+        )
+        let delivery = deliveryDescription(
+            eventType: observedEvent.eventType,
+            eventEnabled: eventEnabled,
+            isAway: away,
+            quietHours: quietHours,
+            output: output
+        )
 
         let item = ActivityItem(
             id: UUID(),
@@ -393,18 +425,18 @@ final class AppState: ObservableObject {
             "EVENT \(observedEvent.eventType.rawValue) src=\(observedEvent.sourceApp.rawValue) away=\(away) → \(delivery)"
         )
 
-        if playSound {
-            soundEngine.play(soundID: preferences.soundID(for: observedEvent.eventType))
+        if output.playsSound {
+            soundEngine.play(soundID: preferences.soundID(for: observedEvent.sourceApp, eventType: observedEvent.eventType))
         }
 
-        if showBanner {
+        if output.showsBanner {
             notificationPresenter.present(
                 title: "\(observedEvent.sourceApp.displayName) · \(observedEvent.eventType.title)",
                 body: item.excerpt
             )
         }
 
-        if showGlow {
+        if output.showsGlow {
             let color = appGlowColor(for: observedEvent.sourceApp)
             switch observedEvent.eventType {
             case .completion:
@@ -425,6 +457,30 @@ final class AppState: ObservableObject {
         }
     }
 
+    private func deliveryDescription(
+        eventType: NotificationEventType,
+        eventEnabled: Bool,
+        isAway: Bool,
+        quietHours: DeliveryPolicy.QuietHours,
+        output: DeliveryPolicy
+    ) -> String {
+        guard eventEnabled else {
+            return "Muted (\(eventType.title.lowercased()) alerts are off)"
+        }
+
+        switch quietHours {
+        case .allSignals:
+            return "Muted (quiet hours)"
+        case .soundOnly:
+            return output.showsGlow || output.showsBanner ? "Glow only (quiet hours)" : "Muted (quiet hours)"
+        case .off:
+            if output.showsGlow {
+                return "Sound + glow"
+            }
+            return isAway ? "Sound only (glow is off)" : "Sound only (you were in the app)"
+        }
+    }
+
     private func handleStatus(permissionGranted: Bool, runningApps: Set<TargetApp>) {
         self.runningApps = runningApps
 
@@ -437,6 +493,15 @@ final class AppState: ObservableObject {
 
         if status != .attention {
             status = preferences.isWatching(.codex) || preferences.isWatching(.claude) ? .watching : .idle
+        }
+    }
+
+    private func requestNotificationPermission() {
+        notificationPresenter.requestAuthorizationIfNeeded { [weak self] granted in
+            guard let self, self.preferences.notificationsEnabled else { return }
+            if !granted {
+                self.issue = .notificationPermission
+            }
         }
     }
 

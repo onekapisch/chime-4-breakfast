@@ -7,15 +7,13 @@
 
 ## P2
 
-- Per-app sound overrides (different cues for Codex vs Claude)
 - Notification click-to-focus for the source app
-- Optional quiet-hours mode that suppresses sound only while still allowing visual glow
-- Signed/notarized DMG release dry run with real Developer ID credentials
+- Run the signed/notarized v1.1.0 release after restoring the local notarytool Keychain profile
 
 ## P3
 
 - Explore Codex CLI and Claude Code support
-- Add custom sound import
+- Add import of user-licensed custom audio
 - Add adjustable attention phrase rules (user-authored / regex)
 - Daily detection stats
 
@@ -29,13 +27,17 @@
 - Polished menu bar popover with app icons, watcher health, event accents, and compact recent activity
 - Stable local debug signing through `scripts/run-debug.sh` so Accessibility permission survives rebuilds
 - Built-in sound previews now load the selected app-bundled WAV instead of falling back to the system beep
+- Per-event or per-app sound routing, including local system-spoken Codex and Claude cues
 - Sound playback now uses retained full-volume AVAudioPlayer instances with playback-result logging
 - Deterministic app-color glow preview and presentation-layer glow debug logging
 - Stronger in-window edge-band glow renderer for reliable live visibility
+- Perceptual glow intensity with a 20-100% range, live preview updates, and persisted low settings
 - Fast-completion fallback for short replies that finish before polling observes the Stop edge
 - Wake/idle guard that prevents stale transcript refreshes from triggering screen glow
 - Official app icon in the popover header with refined liquid-glass panel highlights
 - Optional macOS notification banners
+- Quiet-hours sound-only mode with centralized delivery policy
+- Session-only recent activity retention
 - Launch at login and Clear recent activity
 - Whole-word classifier matching
 - MIT license + CI workflow

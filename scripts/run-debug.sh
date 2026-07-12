@@ -8,7 +8,7 @@ DERIVED_DATA_PATH="$ROOT_DIR/.derived-data"
 cd "$ROOT_DIR"
 
 xcodegen generate >/dev/null
-xcodebuild -scheme Chime4BreakfastApp -derivedDataPath "$DERIVED_DATA_PATH" -destination 'platform=macOS' build >/dev/null
+xcodebuild -project Chime4Breakfast.xcodeproj -scheme Chime4BreakfastApp -derivedDataPath "$DERIVED_DATA_PATH" -destination 'platform=macOS' build >/dev/null
 
 APP_PATH="$DERIVED_DATA_PATH/Build/Products/Debug/Chime 4 Breakfast.app"
 INSTALL_PATH="$HOME/Applications/Chime 4 Breakfast.app"
@@ -31,17 +31,25 @@ ditto "$APP_PATH" "$INSTALL_PATH"
 if [[ -z "$SIGNING_IDENTITY" ]]; then
   SIGNING_IDENTITY="$(
     security find-identity -v -p codesigning 2>/dev/null \
+      | sed -n 's/.*"\(Developer ID Application: [^"]*\)".*/\1/p' \
+      | head -n 1
+  )"
+fi
+
+if [[ -z "$SIGNING_IDENTITY" ]]; then
+  SIGNING_IDENTITY="$(
+    security find-identity -v -p codesigning 2>/dev/null \
       | sed -n 's/.*"\(Apple Development: [^"]*\)".*/\1/p' \
       | head -n 1
   )"
 fi
 
 if [[ -n "$SIGNING_IDENTITY" ]]; then
-  codesign --force --deep --timestamp=none --sign "$SIGNING_IDENTITY" "$INSTALL_PATH" >/dev/null
+  codesign --force --deep --options runtime --timestamp=none --sign "$SIGNING_IDENTITY" "$INSTALL_PATH" >/dev/null
   codesign --verify --strict --verbose=2 "$INSTALL_PATH" >/dev/null
   echo "Signed with: $SIGNING_IDENTITY"
 else
-  echo "Warning: no Apple Development signing identity found; app remains ad-hoc signed." >&2
+  echo "Warning: no Developer ID or Apple Development identity found; app remains ad-hoc signed." >&2
   echo "Accessibility permission may reset on every rebuild." >&2
 fi
 

@@ -36,7 +36,7 @@ struct RulesSection: View {
 
             RowDivider()
 
-            CompactRow(title: "Quiet hours", subtitle: "Silences sound, glow, and banners") {
+            CompactRow(title: "Quiet hours", subtitle: quietHoursSubtitle) {
                 MiniToggle(isOn: Binding(
                     get: { appState.preferences.quietHoursEnabled },
                     set: { appState.setQuietHoursEnabled($0) }
@@ -59,6 +59,19 @@ struct RulesSection: View {
                     Spacer()
                 }
                 .padding(.bottom, 8)
+
+                Picker("Quiet-hours mode", selection: Binding(
+                    get: { appState.preferences.quietHoursMode },
+                    set: { appState.setQuietHoursMode($0) }
+                )) {
+                    ForEach(QuietHoursMode.allCases, id: \.self) { mode in
+                        Text(mode.title).tag(mode)
+                    }
+                }
+                .labelsHidden()
+                .controlSize(.small)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.bottom, 8)
             }
 
             RowDivider()
@@ -70,6 +83,12 @@ struct RulesSection: View {
                     .padding(.bottom, 8)
             }
         }
+    }
+
+    private var quietHoursSubtitle: String {
+        appState.preferences.quietHoursMode == .soundOnly
+            ? "Mutes sound; keeps visual alerts when away"
+            : "Silences sound, glow, and banners"
     }
 
     private var disclosureRow: some View {

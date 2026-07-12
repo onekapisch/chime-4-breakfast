@@ -41,4 +41,26 @@ final class ActivityStoreTests: XCTestCase {
 
         XCTAssertTrue(store.items.isEmpty)
     }
+
+    func test_activity_does_not_survive_a_new_app_session() {
+        let suiteName = UUID().uuidString
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+
+        let firstSession = ActivityStore(defaults: defaults)
+        firstSession.append(
+            ActivityItem(
+                id: UUID(),
+                sourceApp: .codex,
+                eventType: .completion,
+                timestamp: Date(),
+                excerpt: "Session-only item",
+                fingerprint: "session-only"
+            )
+        )
+
+        let nextSession = ActivityStore(defaults: defaults)
+
+        XCTAssertTrue(nextSession.items.isEmpty)
+    }
 }
