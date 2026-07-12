@@ -146,14 +146,13 @@ def build_hero():
     x = 350
     draw.text((x, 168), "Chime 4 Breakfast",
               font=font(90, weight="Bold", display=True), fill=(255, 255, 255))
-    draw.text((x, 282), "No need to keep watching AI think.",
+    draw.text((x, 282), "Know when your AI is ready.",
               font=font(42, weight="Semibold", display=True), fill=(214, 218, 230))
 
     body_font = font(26, weight="Regular", display=True)
     for i, line in enumerate(wrap(draw,
-            "Move on to another task. C4B notifies you the moment Codex or Claude "
-            "Desktop needs you or finishes a reply. A sound, plus a screen-edge glow "
-            "when you have stepped away.",
+            "A native menu-bar cue for Codex and Claude Desktop. Hear the finish, "
+            "see the source-app glow, and run a complete setup test before you step away.",
             body_font, 780)):
         draw.text((x, 356 + i * 38), line, font=body_font, fill=(170, 175, 190))
 
@@ -161,8 +160,8 @@ def build_hero():
     py = 500
     fp = font(21, weight="Semibold")
     px += pill(draw, (px, py), "100% local", fp, dot=(61, 185, 120)) + 14
-    px += pill(draw, (px, py), "Screen glow", fp, dot=BLUE) + 14
-    pill(draw, (px, py), "Codex & Claude", fp, dot=CLAUDE)
+    px += pill(draw, (px, py), "Setup test", fp, dot=BLUE) + 14
+    pill(draw, (px, py), "Codex + Claude", fp, dot=CLAUDE)
 
     if os.path.exists(POPOVER):
         pop = Image.open(POPOVER).convert("RGBA")
