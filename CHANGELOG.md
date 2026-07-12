@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Standardized the release asset filename and made the SHA-256 file portable: users can now verify the downloaded DMG directly without editing a local path.
+
 ## 1.1.0 - 2026-07-12
 
 - Added a Sound profile control: assign cues separately for completion/attention or assign a distinct cue to Codex and Claude. Provider routing is persisted and applied to real delivered alerts, not only preview.

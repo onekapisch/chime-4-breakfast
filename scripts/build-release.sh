@@ -21,7 +21,8 @@ fi
 BUILD_DIR="$ROOT_DIR/.release"
 DERIVED="$BUILD_DIR/DerivedData"
 APP_NAME="Chime 4 Breakfast"
-DMG_PATH="$BUILD_DIR/$APP_NAME.dmg"
+DMG_FILENAME="Chime-4-Breakfast.dmg"
+DMG_PATH="$BUILD_DIR/$DMG_FILENAME"
 
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
@@ -82,8 +83,11 @@ else
   echo "==> Skipping notarization (set NOTARY_PROFILE to enable)"
 fi
 
-CHECKSUM_PATH="$DMG_PATH.sha256"
-shasum -a 256 "$DMG_PATH" > "$CHECKSUM_PATH"
+CHECKSUM_PATH="$BUILD_DIR/$DMG_FILENAME.sha256"
+(
+  cd "$BUILD_DIR"
+  shasum -a 256 "$DMG_FILENAME" > "$DMG_FILENAME.sha256"
+)
 
 echo "Done: $DMG_PATH"
 echo "SHA-256: $CHECKSUM_PATH"
