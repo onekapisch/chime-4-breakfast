@@ -103,8 +103,31 @@ struct MenuBarPopoverView: View {
 
             Spacer(minLength: 8)
 
+            setupTestMenu
+
             statusChip
         }
+    }
+
+    private var setupTestMenu: some View {
+        Menu {
+            ForEach(TargetApp.allCases) { app in
+                Button {
+                    appState.runSetupTest(for: app)
+                } label: {
+                    Label("Test \(app.displayName)", systemImage: "checkmark.seal.fill")
+                }
+            }
+        } label: {
+            Image(systemName: "checkmark.seal")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(ColorTokens.fog.opacity(0.82))
+                .frame(width: 26, height: 26)
+                .background(Color.white.opacity(0.07), in: Circle())
+        }
+        .menuStyle(.borderlessButton)
+        .help("Run a complete test alert")
+        .accessibilityLabel("Test alert")
     }
 
     private var isLive: Bool {

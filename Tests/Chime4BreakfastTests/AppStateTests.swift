@@ -261,6 +261,41 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(sound.playedSoundIDs, ["horn"])
     }
 
+    func test_setup_test_plays_the_selected_app_completion_sound_and_glow() {
+        let sound = TestSoundPlayer()
+        let glow = TestScreenGlowPresenter()
+        let state = AppState(
+            preferencesStore: isolatedPreferencesStore { preferences in
+                preferences.soundRoutingMode = .app
+                preferences.setSoundID("tick", for: .codex)
+                preferences.setSoundID("horn", for: .claude)
+            },
+            soundEngine: sound,
+            screenGlowController: glow
+        )
+
+        state.runSetupTest(for: .claude)
+
+        XCTAssertEqual(sound.playedSoundIDs, ["horn"])
+        XCTAssertEqual(glow.events, [.completion])
+        XCTAssertEqual(state.recentActivity.first?.sourceApp, .claude)
+        XCTAssertEqual(state.recentActivity.first?.delivery, "Setup test · Sound + glow")
+    }
+
+    func test_setup_test_includes_a_source_aware_banner_when_enabled() {
+        let notifications = TestNotificationPresenter()
+        let state = AppState(
+            preferencesStore: isolatedPreferencesStore { preferences in
+                preferences.notificationsEnabled = true
+            },
+            notificationPresenter: notifications
+        )
+
+        state.runSetupTest(for: .codex)
+
+        XCTAssertEqual(notifications.presented.map(\.sourceApp), [.codex])
+    }
+
     func test_login_item_failure_is_exposed_to_the_popover() {
         let loginItem = TestLoginItemController(error: LoginItemTestError.registrationFailed)
         let state = AppState(
@@ -403,7 +438,7 @@ private final class TestScreenGlowPresenter: ScreenGlowPresenting {
 private final class TestNotificationPresenter: NotificationPresenting {
     private let authorizationGranted: Bool
     private(set) var authorizationRequestCount = 0
-    private(set) var presented: [(title: String, body: String)] = []
+    private(set) var presented: [(title: String, body: String, sourceApp: TargetApp)] = []
 
     init(authorizationGranted: Bool = true) {
         self.authorizationGranted = authorizationGranted
@@ -418,7 +453,7 @@ private final class TestNotificationPresenter: NotificationPresenting {
         onResult(authorizationGranted)
     }
 
-    func present(title: String, body: String) {
-        presented.append((title, body))
+    func present(title: String, body: String, sourceApp: TargetApp) {
+        presented.append((title, body, sourceApp))
     }
 }

@@ -7,14 +7,12 @@
 
 ## P2
 
-- Notification click-to-focus for the source app
-- Run the signed/notarized v1.1.0 release after restoring the local notarytool Keychain profile
+- Native auto-update with Sparkle and a signed appcast feed
 
 ## P3
 
 - Explore Codex CLI and Claude Code support
 - Add import of user-licensed custom audio
-- Add adjustable attention phrase rules (user-authored / regex)
 - Daily detection stats
 
 ## Done
@@ -36,6 +34,7 @@
 - Wake/idle guard that prevents stale transcript refreshes from triggering screen glow
 - Official app icon in the popover header with refined liquid-glass panel highlights
 - Optional macOS notification banners
+- Setup-test alerts and source-aware notification actions that focus Codex or Claude
 - Quiet-hours sound-only mode with centralized delivery policy
 - Session-only recent activity retention
 - Launch at login and Clear recent activity

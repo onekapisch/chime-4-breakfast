@@ -296,6 +296,37 @@ final class AppState: ObservableObject {
         screenGlowController.preview(color: appGlowColor(for: app), intensity: preferences.glowIntensity)
     }
 
+    func runSetupTest(for app: TargetApp) {
+        let eventType: NotificationEventType = .completion
+        var channels = ["Sound"]
+
+        soundEngine.play(soundID: preferences.soundID(for: app, eventType: eventType))
+
+        if preferences.screenGlowEnabled {
+            screenGlowController.flashCompletion(color: appGlowColor(for: app), intensity: preferences.glowIntensity)
+            channels.append("glow")
+        }
+
+        if preferences.notificationsEnabled {
+            notificationPresenter.present(
+                title: "\(app.displayName) · Setup test",
+                body: "This is a test completion alert from Chime 4 Breakfast.",
+                sourceApp: app
+            )
+            channels.append("banner")
+        }
+
+        activityStore.append(ActivityItem(
+            id: UUID(),
+            sourceApp: app,
+            eventType: eventType,
+            timestamp: Date(),
+            excerpt: "Setup test: \(app.displayName) completion cue.",
+            fingerprint: "setup-test-\(app.rawValue)-\(UUID().uuidString)",
+            delivery: "Setup test · \(channels.joined(separator: " + "))"
+        ))
+    }
+
     static func preferredPreviewApp(from runningApps: Set<TargetApp>) -> TargetApp {
         if runningApps.contains(.codex) {
             return .codex
@@ -432,7 +463,8 @@ final class AppState: ObservableObject {
         if output.showsBanner {
             notificationPresenter.present(
                 title: "\(observedEvent.sourceApp.displayName) · \(observedEvent.eventType.title)",
-                body: item.excerpt
+                body: item.excerpt,
+                sourceApp: observedEvent.sourceApp
             )
         }
 
