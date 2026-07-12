@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.0 - 2026-07-12
+
+- Added a Sound profile control: assign cues separately for completion/attention or assign a distinct cue to Codex and Claude. Provider routing is persisted and applied to real delivered alerts, not only preview.
+- Added rights-safe local spoken cues for "Codex" and "Claude" using macOS speech synthesis. No interview recordings, public-figure voices, or third-party speech samples are bundled.
+- The canonical debug launcher now re-signs the installed app with its stable Developer ID identity, preventing a development-signature mismatch from making an existing Accessibility grant appear missing.
+- Added app version and build metadata to the generated macOS bundle, and strengthened the release script with signing/notarization guards, stapler validation, Gatekeeper assessment, and a SHA-256 artifact checksum.
+- Rebuilt glow intensity as a perceptual renderer setting: it now changes the edge-band width, halo opacity and size, and border brightness across a real 20-100% range instead of only applying a narrow final-opacity multiplier.
+- The percentage is visible in the popover, active previews update while the slider moves, and saved low-intensity preferences persist after relaunch.
+- Centralized alert delivery and added an explicit quiet-hours choice between muting all signals and muting sound only. Login-item, diagnostics, and notification-permission failures now appear in the popover instead of being silently discarded.
+- Recent activity is now session-only, and App Nap is disabled only while an active generation or finish confirmation needs low-latency monitoring.
+
 ## 2026-07-05
 
 - Prepared the project for public GitHub launch by cleaning repository hygiene, CI, documentation, diagnostics privacy copy, notification handling, dead support code, and developer tooling portability

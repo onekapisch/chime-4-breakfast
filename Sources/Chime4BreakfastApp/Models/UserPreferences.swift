@@ -1,5 +1,33 @@
 import Foundation
 
+enum QuietHoursMode: String, Codable, CaseIterable, Equatable {
+    case allSignals
+    case soundOnly
+
+    var title: String {
+        switch self {
+        case .allSignals:
+            "Mute all alerts"
+        case .soundOnly:
+            "Mute sound only"
+        }
+    }
+}
+
+enum SoundRoutingMode: String, Codable, CaseIterable, Equatable {
+    case event
+    case app
+
+    var title: String {
+        switch self {
+        case .event:
+            "Per event"
+        case .app:
+            "Per app"
+        }
+    }
+}
+
 struct UserPreferences: Codable, Equatable {
     var watchCodex: Bool
     var watchClaude: Bool
@@ -7,9 +35,13 @@ struct UserPreferences: Codable, Equatable {
     var attentionAlertsEnabled: Bool
     var completionSoundID: String
     var attentionSoundID: String
+    var soundRoutingMode: SoundRoutingMode = .event
+    var codexSoundID: String = "wave"
+    var claudeSoundID: String = "horn"
     var quietHoursEnabled: Bool
     var quietHoursStartHour: Int
     var quietHoursEndHour: Int
+    var quietHoursMode: QuietHoursMode = .allSignals
     var screenGlowEnabled: Bool
     var notificationsEnabled: Bool = false
     var customAttentionPhrases: [String] = []
@@ -22,9 +54,13 @@ struct UserPreferences: Codable, Equatable {
         attentionAlertsEnabled: true,
         completionSoundID: "wave",
         attentionSoundID: "horn",
+        soundRoutingMode: .event,
+        codexSoundID: "wave",
+        claudeSoundID: "horn",
         quietHoursEnabled: false,
         quietHoursStartHour: 22,
         quietHoursEndHour: 8,
+        quietHoursMode: .allSignals,
         screenGlowEnabled: true,
         notificationsEnabled: false,
         customAttentionPhrases: [],
@@ -58,12 +94,34 @@ struct UserPreferences: Codable, Equatable {
         }
     }
 
+    func soundID(for app: TargetApp, eventType: NotificationEventType) -> String {
+        guard soundRoutingMode == .app else {
+            return soundID(for: eventType)
+        }
+
+        switch app {
+        case .codex:
+            return codexSoundID
+        case .claude:
+            return claudeSoundID
+        }
+    }
+
     mutating func setSoundID(_ soundID: String, for eventType: NotificationEventType) {
         switch eventType {
         case .completion:
             completionSoundID = soundID
         case .attention:
             attentionSoundID = soundID
+        }
+    }
+
+    mutating func setSoundID(_ soundID: String, for app: TargetApp) {
+        switch app {
+        case .codex:
+            codexSoundID = soundID
+        case .claude:
+            claudeSoundID = soundID
         }
     }
 
@@ -116,16 +174,17 @@ extension UserPreferences {
         attentionAlertsEnabled = try container.decodeIfPresent(Bool.self, forKey: .attentionAlertsEnabled) ?? defaults.attentionAlertsEnabled
         completionSoundID = try container.decodeIfPresent(String.self, forKey: .completionSoundID) ?? defaults.completionSoundID
         attentionSoundID = try container.decodeIfPresent(String.self, forKey: .attentionSoundID) ?? defaults.attentionSoundID
+        soundRoutingMode = try container.decodeIfPresent(SoundRoutingMode.self, forKey: .soundRoutingMode) ?? defaults.soundRoutingMode
+        codexSoundID = try container.decodeIfPresent(String.self, forKey: .codexSoundID) ?? defaults.codexSoundID
+        claudeSoundID = try container.decodeIfPresent(String.self, forKey: .claudeSoundID) ?? defaults.claudeSoundID
         quietHoursEnabled = try container.decodeIfPresent(Bool.self, forKey: .quietHoursEnabled) ?? defaults.quietHoursEnabled
         quietHoursStartHour = try container.decodeIfPresent(Int.self, forKey: .quietHoursStartHour) ?? defaults.quietHoursStartHour
         quietHoursEndHour = try container.decodeIfPresent(Int.self, forKey: .quietHoursEndHour) ?? defaults.quietHoursEndHour
+        quietHoursMode = try container.decodeIfPresent(QuietHoursMode.self, forKey: .quietHoursMode) ?? defaults.quietHoursMode
         screenGlowEnabled = try container.decodeIfPresent(Bool.self, forKey: .screenGlowEnabled) ?? defaults.screenGlowEnabled
         notificationsEnabled = try container.decodeIfPresent(Bool.self, forKey: .notificationsEnabled) ?? defaults.notificationsEnabled
         customAttentionPhrases = try container.decodeIfPresent([String].self, forKey: .customAttentionPhrases) ?? defaults.customAttentionPhrases
         let decodedIntensity = try container.decodeIfPresent(Double.self, forKey: .glowIntensity) ?? defaults.glowIntensity
-        // Values below 0.7 predate the visible-floor fix (old builds silently
-        // overrode the slider, leaving stale stored values like 0.2). Treat them
-        // as unset and restore full brightness.
-        glowIntensity = decodedIntensity < 0.7 ? 1.0 : min(decodedIntensity, 1.0)
+        glowIntensity = GlowConfiguration(intensity: decodedIntensity).intensity
     }
 }

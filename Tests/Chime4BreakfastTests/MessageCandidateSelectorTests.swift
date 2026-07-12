@@ -64,4 +64,12 @@ final class MessageCandidateSelectorTests: XCTestCase {
             "The subscription flow now validates products, handles restore, and reports missing configuration."
         )
     }
+
+    func test_marks_unlabeled_message_as_low_confidence() {
+        let candidate = selector.selectCandidate(from: [
+            "A plain sentence without a verified assistant label is visible in the window."
+        ])
+
+        XCTAssertEqual(candidate?.confidence, .low)
+    }
 }

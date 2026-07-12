@@ -73,13 +73,14 @@ enum AXScan {
         AXUIElementSetAttributeValue(appElement, "AXEnhancedUserInterface" as CFString, kCFBooleanTrue)
 
         let deadline = CFAbsoluteTimeGetCurrent() + fullScanTimeLimit
-        var best: [String] = []
+        var windows: [[String]] = []
         for window in elementArray("AXWindows", of: appElement) ?? [] {
             var budget = maxBudget
             var strings: [String] = []
             walk(window, depth: 0, budget: &budget, deadline: deadline, into: &strings)
-            if strings.count > best.count { best = strings }
+            windows.append(strings)
         }
+        var best = ConversationWindowSelector().select(from: windows) ?? windows.max(by: { $0.count < $1.count }) ?? []
 
         // Fallback for apps whose windows expose little (or none): walk the app.
         if best.count < 5 {
@@ -220,6 +221,7 @@ final class AccessibilityProbe: AccessibilityProbing {
     private var activityToken: NSObjectProtocol?
     private let classifier = MessageClassifier()
     private let selector = MessageCandidateSelector()
+    private var processEpochs = ProcessEpochs()
     private let finishDetector = FinishEdgeDetector()
 
     /// How long an in-flight scan may run before we assume the target app hung
@@ -238,12 +240,12 @@ final class AccessibilityProbe: AccessibilityProbing {
         watchedApps = apps
         invalidateInFlightScans()
         finishDetector.reset(watching: apps)
+        processEpochs.invalidateAll(apps)
         observerPIDs = [:]
         self.snapshotHandler = snapshotHandler
         self.statusHandler = statusHandler
         registerActivationObserver()
         registerLifecycleObservers()
-        beginActivityIfNeeded()
         chimeDebugLog("probe.start watching=[\(apps.map { $0.rawValue }.joined(separator: ","))]")
 
         tick()
@@ -260,9 +262,8 @@ final class AccessibilityProbe: AccessibilityProbing {
         timer = pollTimer
     }
 
-    /// Opting out of App Nap while monitoring: this is a background agent, and
-    /// napped timers slip from seconds to minutes - the finish edge then goes
-    /// unobserved and alerts appear "randomly" late or never.
+    /// Keep the process responsive while a response is generating or its Stop
+    /// edge awaits confirmation. Idle monitoring uses the normal system budget.
     private func beginActivityIfNeeded() {
         guard activityToken == nil else { return }
         activityToken = ProcessInfo.processInfo.beginActivity(
@@ -275,6 +276,15 @@ final class AccessibilityProbe: AccessibilityProbing {
         if let activityToken {
             ProcessInfo.processInfo.endActivity(activityToken)
             self.activityToken = nil
+        }
+    }
+
+    private func updateActivityState() {
+        let hasActiveDetection = watchedApps.contains { finishDetector.needsMessage(for: $0) }
+        if MonitoringActivityPolicy.requiresAppNapExemption(hasActiveDetection: hasActiveDetection) {
+            beginActivityIfNeeded()
+        } else {
+            endActivityIfNeeded()
         }
     }
 
@@ -341,6 +351,8 @@ final class AccessibilityProbe: AccessibilityProbing {
         coalesceTask?.cancel()
         coalesceTask = nil
         finishDetector.reset(watching: watchedApps)
+        processEpochs.invalidateAll(watchedApps)
+        endActivityIfNeeded()
         chimeDebugLog("probe.reset reason=\(name.rawValue)")
     }
 
@@ -423,20 +435,28 @@ final class AccessibilityProbe: AccessibilityProbing {
 
         for app in Set(watchedApps).subtracting(running) {
             finishDetector.reset(app: app)
+            processEpochs.invalidate(app: app)
             removeObserver(for: app)
         }
+        updateActivityState()
 
         for app in watchedApps {
             guard running.contains(app), let runningApp = app.runningApplications.first else { continue }
+            let process = processEpochs.observe(app: app, pid: runningApp.processIdentifier)
+            if process.didChange {
+                finishDetector.reset(app: app)
+                scanSessions[app, default: 0] += 1
+                extractingApps[app] = nil
+            }
             installObserverIfNeeded(for: app, runningApp: runningApp)
-            beginScanIfIdle(app: app, pid: runningApp.processIdentifier)
+            beginScanIfIdle(app: app, pid: runningApp.processIdentifier, epoch: process.epoch)
         }
     }
 
     /// Launches an independent, time-bounded scan for one app. Independence
     /// matters: a busy Codex must never delay Claude's finish detection (and
     /// vice versa).
-    private func beginScanIfIdle(app: TargetApp, pid: pid_t) {
+    private func beginScanIfIdle(app: TargetApp, pid: pid_t, epoch: Int) {
         if let startedAt = extractingApps[app] {
             guard Date().timeIntervalSince(startedAt) > extractionStallLimit else { return }
             chimeDebugLog("scan stalled app=\(app.rawValue) - abandoning")
@@ -450,19 +470,22 @@ final class AccessibilityProbe: AccessibilityProbing {
         Task.detached(priority: .utility) {
             var generating = AXScan.indicatesGenerating(pid: pid)
             var latest: String?
+            var allowsFastFallback = false
             var tailKey: String?
 
             if !generating {
                 let strings = AXScan.collectStrings(pid: pid)
                 generating = AXScan.indicatesGenerating(strings)
                 if !generating {
-                    latest = selector.select(from: strings)
+                    let candidate = selector.selectCandidate(from: strings)
+                    latest = candidate?.message
+                    allowsFastFallback = candidate?.confidence == .high
                     tailKey = selector.tailKey(from: strings)
                 }
             }
 
             await MainActor.run { [weak self] in
-                self?.finishScan(app: app, session: session, generating: generating, latest: latest, tailKey: tailKey)
+                self?.finishScan(app: app, pid: pid, epoch: epoch, session: session, generating: generating, latest: latest, allowsFastFallback: allowsFastFallback, tailKey: tailKey)
             }
         }
     }
@@ -471,8 +494,8 @@ final class AccessibilityProbe: AccessibilityProbing {
     /// showing its Stop control (generating true→false), confirmed across one
     /// extra observation to ignore flicker, and rate-limited by the detector's
     /// refire debounce.
-    private func finishScan(app: TargetApp, session: Int, generating: Bool, latest: String?, tailKey: String?) {
-        guard scanSessions[app, default: 0] == session else { return }
+    private func finishScan(app: TargetApp, pid: pid_t, epoch: Int, session: Int, generating: Bool, latest: String?, allowsFastFallback: Bool, tailKey: String?) {
+        guard scanSessions[app, default: 0] == session, processEpochs.accepts(app: app, pid: pid, epoch: epoch) else { return }
         extractingApps[app] = nil
 
         if let snapshot = finishDetector.process(
@@ -480,6 +503,7 @@ final class AccessibilityProbe: AccessibilityProbing {
             generating: generating,
             message: latest,
             changeKey: tailKey,
+            allowsFastFallback: allowsFastFallback,
             isFrontmost: isFrontmost(app),
             fingerprint: fingerprint
         ) {
@@ -494,6 +518,7 @@ final class AccessibilityProbe: AccessibilityProbing {
         if finishDetector.needsMessage(for: app) {
             scheduleCoalescedTick()
         }
+        updateActivityState()
     }
 
     private func isFrontmost(_ app: TargetApp) -> Bool {

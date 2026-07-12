@@ -39,6 +39,19 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(notifications.authorizationRequestCount, 1)
     }
 
+    func test_notification_permission_denial_is_exposed_to_the_popover() {
+        let notifications = TestNotificationPresenter(authorizationGranted: false)
+
+        let state = AppState(
+            preferencesStore: isolatedPreferencesStore { preferences in
+                preferences.notificationsEnabled = true
+            },
+            notificationPresenter: notifications
+        )
+
+        XCTAssertEqual(state.issue, .notificationPermission)
+    }
+
     func test_status_detail_reports_waiting_when_no_supported_apps_are_running() {
         let probe = TestAccessibilityProbe()
         probe.statusToSend = (true, [])
@@ -121,6 +134,34 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(AppState.preferredPreviewApp(from: Set<TargetApp>()), .codex)
     }
 
+    func test_preview_glow_accepts_an_explicit_source_app() {
+        let glow = TestScreenGlowPresenter()
+        let state = AppState(
+            preferencesStore: isolatedPreferencesStore(),
+            screenGlowController: glow
+        )
+
+        state.previewGlow(for: .claude)
+
+        XCTAssertEqual(glow.events, [.preview])
+    }
+
+    func test_setting_glow_intensity_updates_an_active_preview() {
+        let glow = TestScreenGlowPresenter()
+        let state = AppState(
+            preferencesStore: isolatedPreferencesStore(),
+            soundEngine: TestSoundPlayer(),
+            accessibilityProbe: TestAccessibilityProbe(),
+            accessibilityAuthorizer: TestAccessibilityAuthorizer(isTrusted: true),
+            screenGlowController: glow
+        )
+
+        state.setGlowIntensity(0.2)
+
+        XCTAssertEqual(state.preferences.glowIntensity, 0.2, accuracy: 0.0001)
+        XCTAssertEqual(glow.updatedIntensities, [0.2])
+    }
+
     func test_snapshot_does_not_glow_when_user_was_not_away() {
         let probe = TestAccessibilityProbe()
         let glow = TestScreenGlowPresenter()
@@ -195,6 +236,43 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(state.recentActivity.first?.delivery, "Sound + glow")
     }
 
+    func test_per_app_sound_mode_plays_the_source_app_sound() {
+        let probe = TestAccessibilityProbe()
+        let sound = TestSoundPlayer()
+        let state = AppState(
+            preferencesStore: isolatedPreferencesStore { preferences in
+                preferences.soundRoutingMode = .app
+                preferences.setSoundID("tick", for: .codex)
+                preferences.setSoundID("horn", for: .claude)
+            },
+            soundEngine: sound,
+            accessibilityProbe: probe,
+            accessibilityAuthorizer: TestAccessibilityAuthorizer(isTrusted: true)
+        )
+
+        state.startMonitoringIfNeeded()
+        probe.emit(WindowSnapshot(
+            app: .claude,
+            message: "The implementation is complete and all checks pass.",
+            fingerprint: "claude-provider-sound",
+            userWasAway: false
+        ))
+
+        XCTAssertEqual(sound.playedSoundIDs, ["horn"])
+    }
+
+    func test_login_item_failure_is_exposed_to_the_popover() {
+        let loginItem = TestLoginItemController(error: LoginItemTestError.registrationFailed)
+        let state = AppState(
+            preferencesStore: isolatedPreferencesStore(),
+            loginItemController: loginItem
+        )
+
+        state.setLaunchAtLogin(true)
+
+        XCTAssertEqual(state.issue, .loginItem("The login item could not be updated."))
+    }
+
     private func isolatedDefaults() -> UserDefaults {
         let name = "Chime4BreakfastTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: name)!
@@ -209,6 +287,12 @@ final class AppStateTests: XCTestCase {
         store.preferences = preferences
         return store
     }
+}
+
+private enum LoginItemTestError: LocalizedError {
+    case registrationFailed
+
+    var errorDescription: String? { "The login item could not be updated." }
 }
 
 @MainActor
@@ -233,6 +317,23 @@ private final class TestAccessibilityProbe: AccessibilityProbing {
 
     func emit(_ snapshot: WindowSnapshot) {
         snapshotHandler?(snapshot)
+    }
+}
+
+@MainActor
+private final class TestLoginItemController: LoginItemControlling {
+    private let error: Error?
+
+    init(error: Error? = nil) {
+        self.error = error
+    }
+
+    func isEnabled() -> Bool { false }
+
+    func setEnabled(_ enabled: Bool) throws {
+        if let error {
+            throw error
+        }
     }
 }
 
@@ -275,6 +376,7 @@ private final class TestScreenGlowPresenter: ScreenGlowPresenting {
     }
 
     private(set) var events: [Event] = []
+    private(set) var updatedIntensities: [Double] = []
 
     func flashCompletion(color: Color, intensity: Double) {
         events.append(.completion)
@@ -288,6 +390,10 @@ private final class TestScreenGlowPresenter: ScreenGlowPresenting {
         events.append(.preview)
     }
 
+    func updatePreview(intensity: Double) {
+        updatedIntensities.append(intensity)
+    }
+
     func dismiss() {
         events.append(.dismiss)
     }
@@ -295,11 +401,21 @@ private final class TestScreenGlowPresenter: ScreenGlowPresenting {
 
 @MainActor
 private final class TestNotificationPresenter: NotificationPresenting {
+    private let authorizationGranted: Bool
     private(set) var authorizationRequestCount = 0
     private(set) var presented: [(title: String, body: String)] = []
 
+    init(authorizationGranted: Bool = true) {
+        self.authorizationGranted = authorizationGranted
+    }
+
     func requestAuthorizationIfNeeded() {
         authorizationRequestCount += 1
+    }
+
+    func requestAuthorizationIfNeeded(onResult: @escaping @MainActor @Sendable (Bool) -> Void) {
+        authorizationRequestCount += 1
+        onResult(authorizationGranted)
     }
 
     func present(title: String, body: String) {

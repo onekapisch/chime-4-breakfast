@@ -23,20 +23,30 @@ You need an Apple Developer account ($99/year) for a Developer ID certificate.
 
 ## 2. Build, sign, notarize, package
 
+Before building, update `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in
+`project.yml`. The GitHub tag, release title, and app version must agree.
+
 ```bash
 DEVELOPER_ID="Developer ID Application: Your Name (TEAMID)" \
 NOTARY_PROFILE="chime-4-breakfast" \
 ./scripts/build-release.sh
 ```
 
-This produces a signed, notarized, stapled `Chime 4 Breakfast.dmg` in `.release/`.
+This produces a signed, notarized, stapled `Chime 4 Breakfast.dmg` and a
+SHA-256 checksum file in `.release/`. The script mounts the final DMG and asks
+Gatekeeper to assess the contained app, so it exits non-zero unless the
+notarized installer is accepted.
 
 Without `DEVELOPER_ID` / `NOTARY_PROFILE`, the script still builds and packages an
 unsigned DMG for local testing.
 
 ## 3. Publish
 
-Attach the DMG to a GitHub Release and update the version in `CHANGELOG.md`.
+1. Run the full test suite from the exact commit being released.
+2. Create an annotated `vX.Y.Z` tag matching `MARKETING_VERSION`.
+3. Attach both the DMG and its `.sha256` file to the matching GitHub Release.
+4. Include the completed user-facing changes and first-run Accessibility note in
+   the release body.
 
 ## Hardened runtime note
 

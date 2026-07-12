@@ -58,6 +58,7 @@ final class FinishEdgeDetector {
         generating: Bool,
         message: String?,
         changeKey: String? = nil,
+        allowsFastFallback: Bool = true,
         isFrontmost: Bool,
         now: Date = Date(),
         fingerprint: (TargetApp, String) -> String
@@ -105,7 +106,7 @@ final class FinishEdgeDetector {
                 return nil
             }
 
-            let canUseFastFallback = state.fastCompletionFallbackArmed
+            let canUseFastFallback = state.fastCompletionFallbackArmed && allowsFastFallback
             state.lastObservedFingerprint = selectedFingerprint
             state.fastCompletionFallbackArmed = isFrontmost
 

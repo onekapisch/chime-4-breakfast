@@ -10,7 +10,7 @@ Move on to another task, and **Chime 4 Breakfast** (C4B) notifies you the moment
   <img src="https://img.shields.io/badge/macOS-14%2B-111111?logo=apple&logoColor=white" alt="macOS 14+" />
   <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" alt="Swift 6" />
   <img src="https://img.shields.io/badge/License-MIT-3DA639" alt="MIT License" />
-  <img src="https://img.shields.io/badge/tests-47%20passing-3fb950" alt="47 tests passing" />
+  <img src="https://img.shields.io/badge/tests-verified%20in%20CI-3fb950" alt="Tests verified in CI" />
   <img src="https://img.shields.io/badge/100%25%20local-no%20telemetry-8957E5" alt="100% local, no telemetry" />
   <img src="https://img.shields.io/badge/PRs-welcome-FF4D5E" alt="PRs welcome" />
 </p>
@@ -43,9 +43,9 @@ It is native, tiny, and lives in your menu bar. Everything happens on your Mac.
 - **Watches Codex and Claude Desktop** through the macOS Accessibility layer and fires **once per finished response**.
 - **Two distinct signals.** A soft cue when a reply simply completes, a bolder cue when it looks like it is asking you something.
 - **Full-screen edge glow** in the source app's icon color. Completion fades quickly; attention gives a stronger brief pulse and then clears.
-- **14 built-in sounds** with live preview, assignable per signal.
+- **14 built-in tones plus two local spoken cues** with live preview, assignable per event or per app.
 - **Optional notification banners** for a classic Notification Center ping.
-- **Quiet hours, custom attention phrases, launch at login,** and a compact local activity log.
+- **Quiet hours** with explicit "mute all" or "mute sound only" behavior, custom attention phrases, launch at login, and a session-only local activity log.
 
 <div align="center">
 <img src=".github/assets/glow-demo.png" width="760" alt="Screen-edge glow in source-app colors on every display" />
@@ -57,7 +57,7 @@ It is native, tiny, and lives in your menu bar. Everything happens on your Mac.
 <img src=".github/assets/glow.gif" width="720" alt="Screen edges glow warm when Claude finishes, then pulse blue when Codex needs you" />
 </div>
 
-Sound is great until your speakers are muted or you are in another room. The glow is the part people keep. Chime uses the source app's icon color, so Claude and Codex feel distinct without extra setup. Completion gives a quick flash and fades; attention gives a stronger brief pulse without leaving a persistent overlay on screen.
+Sound is great until your speakers are muted or you are in another room. The glow is the part people keep. Chime uses the source app's icon color, so Claude and Codex feel distinct without extra setup. Completion gives a quick flash and fades; attention gives a stronger brief pulse without leaving a persistent overlay on screen. The intensity control changes the edge-band width, halo, and border brightness from 20% to 100%, and updates a live preview as you adjust it.
 
 ## 🔊 Sounds
 
@@ -65,7 +65,7 @@ Sound is great until your speakers are muted or you are in another room. The glo
 <img src=".github/assets/sounds.png" width="840" alt="The 14 built-in sounds with their real waveforms" />
 </div>
 
-Fourteen built-in tones, each with a one-click **preview** in the popover so you can audition before assigning. Prefer the terminal?
+Fourteen built-in tones, plus local system-spoken **Codex** and **Claude** cues, each with a one-click **preview** in the popover so you can audition before assigning. Choose **Per event** for separate completion and attention cues, or **Per app** to give Codex and Claude their own identities. Prefer the terminal?
 
 ```bash
 afplay Sources/Chime4BreakfastApp/Resources/Sounds/chime.wav
@@ -73,7 +73,7 @@ afplay Sources/Chime4BreakfastApp/Resources/Sounds/chime.wav
 
 Assign one to completions and another to attention, or turn sound off entirely and keep just the glow.
 
-Every sound is **synthesized from scratch** by [`scripts/gen-sounds.py`](scripts/gen-sounds.py), with no samples or third-party audio, and dedicated to the public domain under [CC0](Sources/Chime4BreakfastApp/Resources/Sounds/NOTICE.md). Regenerate or remix them with `python3 scripts/gen-sounds.py`.
+Every tone is **synthesized from scratch** by [`scripts/gen-sounds.py`](scripts/gen-sounds.py), with no samples or third-party audio, and dedicated to the public domain under [CC0](Sources/Chime4BreakfastApp/Resources/Sounds/NOTICE.md). The spoken cues use the voice selected in macOS on that machine; they do not bundle or imitate any person's voice. Regenerate or remix tones with `python3 scripts/gen-sounds.py`.
 
 ## 🧠 How detection works
 
@@ -91,7 +91,7 @@ The rules are deterministic and unit-tested. No model, no network call. If a res
 | Works with Codex and Claude **desktop apps** | ✅ | ❌ | ❌ | ➖ |
 | Knows **done** vs **needs your input** | ✅ | ❌ | ❌ | 🙂 |
 | **Screen-edge glow** (works muted / across the room) | ✅ | ❌ | ❌ | ❌ |
-| **Per-event** sound plus app-color glow | ✅ | ❌ | ❌ | ➖ |
+| **Per-event or per-app** sound plus app-color glow | ✅ | ❌ | ❌ | ➖ |
 | Fires **once** per Stop edge | ✅ | ➖ | ➖ | ➖ |
 | **100% local**, no account | ✅ | ✅ | ✅ | ✅ |
 
@@ -136,9 +136,9 @@ Or build and launch straight from the terminal:
 ./scripts/run-debug.sh
 ```
 
-The debug launcher installs one canonical app at `~/Applications/Chime 4 Breakfast.app`.
+The debug launcher installs one canonical app at `~/Applications/Chime 4 Breakfast.app` and prefers the same Developer ID identity used for release builds, so macOS keeps one Accessibility grant for it.
 
-**Tired of macOS re-asking for Accessibility on every build?** That happens because a default (ad-hoc) signature changes each build, so macOS treats every rebuild as a new app. Run this once to sign every build with your stable Apple Development identity:
+**Tired of macOS re-asking for Accessibility on every build?** That happens because a default (ad-hoc) signature changes each build, so macOS treats every rebuild as a new app. Run this once to sign every build with your stable Developer ID identity (or Apple Development when a Developer ID certificate is unavailable):
 
 ```bash
 ./scripts/setup-signing.sh
@@ -148,7 +148,7 @@ It detects your identity and team, writes a gitignored `Config/Local.xcconfig`, 
 
 ## 🔒 Privacy & security
 
-- Captured response text is used **only on-device** to classify and show a short recent-activity list.
+- Captured response text is used **only on-device** to classify and show a short recent-activity list for the current app session.
 - **Nothing is uploaded.** No analytics, no telemetry, no network calls.
 - The only permission requested is **Accessibility**, required to read the visible reply text.
 - Full details in [SECURITY.md](SECURITY.md).
@@ -156,8 +156,7 @@ It detects your identity and team, writes a gitignored `Config/Local.xcconfig`, 
 ## 🗺️ Roadmap
 
 - Validate and tune detection against more live Codex and Claude layouts
-- Per-app sound overrides
-- Custom sound import
+- Custom import of user-licensed audio
 - Support for Claude Code, Codex CLI, and the web apps
 - Signed DMG releases plus auto-update
 
@@ -177,7 +176,9 @@ PRs and ideas are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, con
 
 **Does it work with Claude Code, Codex CLI, or the browser?** Not yet. It targets the Codex and Claude **desktop** apps today. The others are on the roadmap.
 
-**Can I use my own sounds?** There are 14 built in for now; custom import is planned. You can also run sound-free and keep only the glow.
+**Can I use different sounds for Codex and Claude?** Yes. Set Sound profile to **Per app**, choose each sound, and use the adjacent preview button. The same provider sound is used for both completion and attention alerts.
+
+**Can I use my own sounds?** There are 14 synthesized tones and two local system-spoken cues today; import of user-licensed audio is planned. You can also run sound-free and keep only the glow.
 
 **Why is it not on the Mac App Store?** Reading another app's UI requires Accessibility, which is not allowed under the App Sandbox, so it ships as a notarized DMG or build-from-source instead.
 

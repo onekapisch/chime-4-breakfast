@@ -28,6 +28,7 @@ jobs:
       - name: Run tests
         run: |
           xcodebuild test \
+            -project Chime4Breakfast.xcodeproj \
             -scheme Chime4BreakfastApp \
             -destination 'platform=macOS' \
             -resultBundlePath TestResults.xcresult
@@ -35,6 +36,7 @@ jobs:
       - name: Build app
         run: |
           xcodebuild \
+            -project Chime4Breakfast.xcodeproj \
             -scheme Chime4BreakfastApp \
             -destination 'platform=macOS' \
             build

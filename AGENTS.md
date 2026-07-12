@@ -59,13 +59,13 @@ xcodegen generate
 Run tests:
 
 ```bash
-xcodebuild test -scheme Chime4BreakfastApp -destination 'platform=macOS'
+xcodebuild -project Chime4Breakfast.xcodeproj -scheme Chime4BreakfastApp -destination 'platform=macOS' test
 ```
 
 Build the app:
 
 ```bash
-xcodebuild -scheme Chime4BreakfastApp -destination 'platform=macOS' build
+xcodebuild -project Chime4Breakfast.xcodeproj -scheme Chime4BreakfastApp -destination 'platform=macOS' build
 ```
 
 ## Conventions

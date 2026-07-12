@@ -1,6 +1,8 @@
 import Foundation
 
 struct MessageCandidateSelector {
+    enum Confidence: Equatable { case low, high }
+    struct Candidate: Equatable { let message: String; let confidence: Confidence }
     private enum Speaker {
         case assistant
         case user
@@ -37,6 +39,10 @@ struct MessageCandidateSelector {
     ]
 
     func select(from rawStrings: [String]) -> String? {
+        selectCandidate(from: rawStrings)?.message
+    }
+
+    func selectCandidate(from rawStrings: [String]) -> Candidate? {
         let cleaned = rawStrings
             .map { $0.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression).trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
@@ -65,7 +71,7 @@ struct MessageCandidateSelector {
 
         let assistantCandidates = candidates.filter { $0.speaker == .assistant }
         if let latestAssistant = assistantCandidates.last {
-            return latestAssistant.text
+            return Candidate(message: latestAssistant.text, confidence: .high)
         }
 
         let qualifying = candidates.map { (offset: $0.offset, element: $0.text) }
@@ -75,7 +81,8 @@ struct MessageCandidateSelector {
         let recent = qualifying.filter { $0.offset >= midpoint }
         let pool = recent.isEmpty ? qualifying : recent
 
-        return pool.max(by: { score(for: $0.element, index: $0.offset, total: cleaned.count) < score(for: $1.element, index: $1.offset, total: cleaned.count) })?.element
+        guard let selected = pool.max(by: { score(for: $0.element, index: $0.offset, total: cleaned.count) < score(for: $1.element, index: $1.offset, total: cleaned.count) }) else { return nil }
+        return Candidate(message: selected.element, confidence: .low)
     }
 
     /// A change-detection key built from the tail of the transcript. Unlike the
