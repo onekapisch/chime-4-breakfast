@@ -15,9 +15,17 @@ Move on to another task, and **Chime 4 Breakfast** (C4B) notifies you the moment
   <img src="https://img.shields.io/badge/PRs-welcome-FF4D5E" alt="PRs welcome" />
 </p>
 
-<b><a href="#-get-started">Get started</a> · <a href="#-what-it-does">Features</a> · <a href="#-how-it-compares">Compare</a> · <a href="#-faq">FAQ</a> · <a href="CONTRIBUTING.md">Contributing</a></b>
+<b><a href="#-get-started">Get started</a> · <a href="#-what-it-does">Features</a> · <a href="#-supported-setup">Support</a> · <a href="#-faq">FAQ</a> · <a href="CONTRIBUTING.md">Contributing</a></b>
 
 </div>
+
+<p align="center">
+  <b><a href="https://github.com/onekapisch/chime-4-breakfast/releases/latest/download/Chime-4-Breakfast.dmg">Download for macOS</a></b>
+  &nbsp;·&nbsp;
+  <a href="docs/SUPPORT.md">Support matrix</a>
+  &nbsp;·&nbsp;
+  <a href="docs/TROUBLESHOOTING.md">Troubleshooting</a>
+</p>
 
 ---
 
@@ -28,7 +36,7 @@ It is native, tiny, and lives in your menu bar. Everything happens on your Mac.
 <div align="center">
 <img src=".github/assets/popover.png" width="360" alt="The Chime 4 Breakfast menu bar popover" />
 <br/>
-<sub>One compact popover holds it all: apps, sounds, screen glow, rules, and a recent-activity log.</sub>
+<sub>One compact popover holds it all: apps, sounds, screen glow, rules, recent activity, and a complete test alert.</sub>
 </div>
 
 ## ✨ Why
@@ -46,6 +54,7 @@ It is native, tiny, and lives in your menu bar. Everything happens on your Mac.
 - **14 built-in tones plus two local spoken cues** with live preview, assignable per event or per app.
 - **Optional notification banners** for a classic Notification Center ping.
 - **Quiet hours** with explicit "mute all" or "mute sound only" behavior, custom attention phrases, launch at login, and a session-only local activity log.
+- **Setup test.** Run a full Codex or Claude completion cue from the header before relying on it.
 
 <div align="center">
 <img src=".github/assets/glow-demo.png" width="760" alt="Screen-edge glow in source-app colors on every display" />
@@ -62,7 +71,7 @@ Sound is great until your speakers are muted or you are in another room. The glo
 ## 🔊 Sounds
 
 <div align="center">
-<img src=".github/assets/sounds.png" width="840" alt="The 14 built-in sounds with their real waveforms" />
+<img src=".github/assets/sounds.png" width="840" alt="Sound selection controls in the Chime 4 Breakfast popover" />
 </div>
 
 Fourteen built-in tones, plus local system-spoken **Codex** and **Claude** cues, each with a one-click **preview** in the popover so you can audition before assigning. Choose **Per event** for separate completion and attention cues, or **Per app** to give Codex and Claude their own identities. Prefer the terminal?
@@ -84,22 +93,15 @@ Chime 4 Breakfast watches the supported apps through the Accessibility API and t
 
 The rules are deterministic and unit-tested. No model, no network call. If a response is ever misread, the popover's **Capture Diagnostics** action writes a Desktop report containing the Accessibility text visible to Chime, including snippets of prompts or replies that were on screen. Nothing is uploaded unless you share that file.
 
-## 🆚 How it compares
+## 🧭 Supported setup
 
-| | **Chime 4 Breakfast** | macOS notifications | Terminal bell | Just checking |
-|---|:---:|:---:|:---:|:---:|
-| Works with Codex and Claude **desktop apps** | ✅ | ❌ | ❌ | ➖ |
-| Knows **done** vs **needs your input** | ✅ | ❌ | ❌ | 🙂 |
-| **Screen-edge glow** (works muted / across the room) | ✅ | ❌ | ❌ | ❌ |
-| **Per-event or per-app** sound plus app-color glow | ✅ | ❌ | ❌ | ➖ |
-| Fires **once** per Stop edge | ✅ | ➖ | ➖ | ➖ |
-| **100% local**, no account | ✅ | ✅ | ✅ | ✅ |
+Chime currently supports the **Codex Desktop** and **Claude Desktop** apps on macOS 14 or later. It is universal for Apple Silicon and Intel Macs. Browser tabs, Codex CLI, and Claude Code are not supported yet. See the complete [support matrix and known limits](docs/SUPPORT.md) before relying on an alert in a new workflow.
 
 ## 🚀 Get started
 
 ### Install
 
-1. Download the latest **Chime 4 Breakfast.dmg** from the [Releases page](https://github.com/onekapisch/chime-4-breakfast/releases/latest).
+1. Download the latest [**Chime-4-Breakfast.dmg**](https://github.com/onekapisch/chime-4-breakfast/releases/latest/download/Chime-4-Breakfast.dmg).
 2. Open the DMG and drag **Chime 4 Breakfast** into **Applications**.
 3. Launch it from Applications.
 
@@ -118,6 +120,12 @@ Chime detects when Codex or Claude finish by reading their windows through the m
 3. Done. Keep Codex or Claude open on a conversation and let a reply finish. You will hear the sound, and if you had stepped away, you will see the glow.
 
 You grant it **once**. The permission persists across app updates, because every release is signed with the same Developer ID.
+
+### Verify your setup
+
+Open the menu-bar popover and choose **Test Codex** or **Test Claude** from the checkmark badge in the header. Chime plays the selected completion sound, shows the matching app-color glow, and posts a banner when banners are enabled. The test is recorded in Recent so you can confirm every enabled channel.
+
+For a missing cue, permission trouble, or a suspected misdetection, start with [Troubleshooting](docs/TROUBLESHOOTING.md). The diagnostic capture is explicit because its report may contain visible on-screen text.
 
 ### Build from source
 
@@ -156,11 +164,13 @@ It detects your identity and team, writes a gitignored `Config/Local.xcconfig`, 
 ## 🗺️ Roadmap
 
 - Validate and tune detection against more live Codex and Claude layouts
+- Native auto-update through Sparkle, with signed appcast releases
 - Custom import of user-licensed audio
-- Support for Claude Code, Codex CLI, and the web apps
-- Signed DMG releases plus auto-update
+- Add the next desktop provider only after adapter-specific live validation
 
 Have an idea? [Open an issue](https://github.com/onekapisch/chime-4-breakfast/issues). The roadmap is demand-driven.
+
+Auto-update requirements and release-safety constraints are documented in [Auto-Update Readiness](docs/AUTO_UPDATE.md).
 
 ## 🤝 Contributing
 
@@ -177,6 +187,8 @@ PRs and ideas are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, con
 **Does it work with Claude Code, Codex CLI, or the browser?** Not yet. It targets the Codex and Claude **desktop** apps today. The others are on the roadmap.
 
 **Can I use different sounds for Codex and Claude?** Yes. Set Sound profile to **Per app**, choose each sound, and use the adjacent preview button. The same provider sound is used for both completion and attention alerts.
+
+**How do I know it is working before I step away?** Use the checkmark badge in the popover header and choose **Test Codex** or **Test Claude**. It exercises the selected sound and glow without waiting for a real response.
 
 **Can I use my own sounds?** There are 14 synthesized tones and two local system-spoken cues today; import of user-licensed audio is planned. You can also run sound-free and keep only the glow.
 

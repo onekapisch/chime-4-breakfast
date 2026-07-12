@@ -3,6 +3,9 @@
 ## Unreleased
 
 - Standardized the release asset filename and made the SHA-256 file portable: users can now verify the downloaded DMG directly without editing a local path.
+- Added a header setup-test menu for Codex and Claude. It exercises the selected completion sound, app-color glow, optional banner, and records the result locally.
+- Notification banners now offer an app-specific foreground action and bring the originating running app forward when selected.
+- Added a support matrix and troubleshooting guide, corrected published asset naming, and removed stale roadmap items for already-shipped release work.
 
 ## 1.1.0 - 2026-07-12
 

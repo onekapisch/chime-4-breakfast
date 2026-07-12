@@ -12,6 +12,7 @@ Chime 4 Breakfast requires macOS Accessibility permission to read visible UI tex
 - Debug logging is disabled by default. Setting `CHIME_DEBUG_LOG=1` writes event metadata to `/tmp/chime4breakfast.log`; it should not include message excerpts.
 - The app does not upload UI text, analytics, or conversation data
 - The optional spoken "Codex" and "Claude" cues use local macOS speech synthesis. They do not send text off-device, embed third-party recordings, or emulate a public figure's voice.
+- A setup test produces only a local sample completion alert. It does not read a target-app window or transmit data.
 
 ## Supported Targets
 
