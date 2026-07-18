@@ -11,7 +11,7 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(state.menuBarSymbolName, "bell.badge.fill")
     }
 
-    func test_start_monitoring_requests_accessibility_prompt_once_when_not_trusted() {
+    func test_start_monitoring_reports_permission_required_when_not_trusted() {
         let probe = TestAccessibilityProbe()
         let authorizer = TestAccessibilityAuthorizer(isTrusted: false)
         let state = AppState(
@@ -22,7 +22,6 @@ final class AppStateTests: XCTestCase {
         state.startMonitoringIfNeeded()
         state.restartMonitoring()
 
-        XCTAssertEqual(authorizer.requestPromptCallCount, 1)
         XCTAssertEqual(state.status, .permissionRequired)
     }
 
@@ -375,7 +374,6 @@ private final class TestLoginItemController: LoginItemControlling {
 @MainActor
 private final class TestAccessibilityAuthorizer: AccessibilityAuthorizing {
     private let isTrustedValue: Bool
-    private(set) var requestPromptCallCount = 0
 
     init(isTrusted: Bool) {
         self.isTrustedValue = isTrusted
@@ -383,10 +381,6 @@ private final class TestAccessibilityAuthorizer: AccessibilityAuthorizing {
 
     func isTrusted() -> Bool {
         isTrustedValue
-    }
-
-    func requestPrompt() {
-        requestPromptCallCount += 1
     }
 }
 

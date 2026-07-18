@@ -109,7 +109,7 @@ final class FinishEdgeDetectorTests: XCTestCase {
         XCTAssertNil(detector.process(app: .claude, generating: false, message: "Result.", isFrontmost: false, now: start.addingTimeInterval(2.5), fingerprint: testFingerprint))
     }
 
-    func test_emits_fast_completion_when_message_changes_after_user_left_without_stop_edge() {
+    func test_does_not_emit_when_streaming_text_changes_after_user_left_without_stop_edge() {
         let detector = FinishEdgeDetector()
         detector.reset(watching: [.codex])
 
@@ -124,88 +124,12 @@ final class FinishEdgeDetectorTests: XCTestCase {
         let snapshot = detector.process(
             app: .codex,
             generating: false,
-            message: "A short response that finished before polling saw Stop.",
+            message: "A streamed status update that arrived before Codex finished.",
             isFrontmost: false,
             fingerprint: testFingerprint
         )
 
-        XCTAssertEqual(snapshot?.app, .codex)
-        XCTAssertEqual(snapshot?.message, "A short response that finished before polling saw Stop.")
-        XCTAssertEqual(snapshot?.userWasAway, true)
-    }
-
-    func test_low_confidence_change_does_not_use_fast_completion_fallback() {
-        let detector = FinishEdgeDetector()
-        detector.reset(watching: [.codex])
-
-        _ = detector.process(app: .codex, generating: false, message: "Previous response.", allowsFastFallback: true, isFrontmost: true, fingerprint: testFingerprint)
-
-        XCTAssertNil(detector.process(
-            app: .codex,
-            generating: false,
-            message: "Text from an unverified window changed after the user left.",
-            allowsFastFallback: false,
-            isFrontmost: false,
-            fingerprint: testFingerprint
-        ))
-    }
-
-    func test_frontmost_fast_completion_updates_baseline_without_later_false_away_alert() {
-        let detector = FinishEdgeDetector()
-        detector.reset(watching: [.codex])
-
-        XCTAssertNil(detector.process(
-            app: .codex,
-            generating: false,
-            message: "Previous finished response.",
-            isFrontmost: true,
-            fingerprint: testFingerprint
-        ))
-
-        XCTAssertNil(detector.process(
-            app: .codex,
-            generating: false,
-            message: "A response the user watched finish.",
-            isFrontmost: true,
-            fingerprint: testFingerprint
-        ))
-
-        XCTAssertNil(detector.process(
-            app: .codex,
-            generating: false,
-            message: "A response the user watched finish.",
-            isFrontmost: false,
-            fingerprint: testFingerprint
-        ))
-    }
-
-    func test_away_sample_with_same_message_disarms_fast_completion_fallback() {
-        let detector = FinishEdgeDetector()
-        detector.reset(watching: [.codex])
-
-        XCTAssertNil(detector.process(
-            app: .codex,
-            generating: false,
-            message: "The last real response.",
-            isFrontmost: true,
-            fingerprint: testFingerprint
-        ))
-
-        XCTAssertNil(detector.process(
-            app: .codex,
-            generating: false,
-            message: "The last real response.",
-            isFrontmost: false,
-            fingerprint: testFingerprint
-        ))
-
-        XCTAssertNil(detector.process(
-            app: .codex,
-            generating: false,
-            message: "A stale transcript candidate exposed after wake.",
-            isFrontmost: false,
-            fingerprint: testFingerprint
-        ))
+        XCTAssertNil(snapshot)
     }
 
     func test_reset_app_discards_inflight_generation() {

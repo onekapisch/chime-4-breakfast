@@ -47,6 +47,7 @@ protocol AccessibilityProbing: AnyObject {
 enum AXScan {
     static let maxBudget = 40_000
     static let maxDepth = 70
+    static let generationIndicatorAttributes = ["AXValue", "AXTitle", "AXDescription", "AXHelp", "AXIdentifier"]
     private static let maxGeneratingBudget = 12_000
 
     /// Bounds every AX message this process sends. Electron apps can beachball
@@ -173,7 +174,7 @@ enum AXScan {
         guard depth < maxDepth, budget > 0, CFAbsoluteTimeGetCurrent() < deadline else { return false }
         budget -= 1
 
-        for attribute in ["AXValue", "AXTitle", "AXDescription"] {
+        for attribute in generationIndicatorAttributes {
             if let text = string(attribute, of: element), isGeneratingString(text) {
                 return true
             }
@@ -470,7 +471,6 @@ final class AccessibilityProbe: AccessibilityProbing {
         Task.detached(priority: .utility) {
             var generating = AXScan.indicatesGenerating(pid: pid)
             var latest: String?
-            var allowsFastFallback = false
             var tailKey: String?
 
             if !generating {
@@ -479,13 +479,12 @@ final class AccessibilityProbe: AccessibilityProbing {
                 if !generating {
                     let candidate = selector.selectCandidate(from: strings)
                     latest = candidate?.message
-                    allowsFastFallback = candidate?.confidence == .high
                     tailKey = selector.tailKey(from: strings)
                 }
             }
 
             await MainActor.run { [weak self] in
-                self?.finishScan(app: app, pid: pid, epoch: epoch, session: session, generating: generating, latest: latest, allowsFastFallback: allowsFastFallback, tailKey: tailKey)
+                self?.finishScan(app: app, pid: pid, epoch: epoch, session: session, generating: generating, latest: latest, tailKey: tailKey)
             }
         }
     }
@@ -494,7 +493,7 @@ final class AccessibilityProbe: AccessibilityProbing {
     /// showing its Stop control (generating true→false), confirmed across one
     /// extra observation to ignore flicker, and rate-limited by the detector's
     /// refire debounce.
-    private func finishScan(app: TargetApp, pid: pid_t, epoch: Int, session: Int, generating: Bool, latest: String?, allowsFastFallback: Bool, tailKey: String?) {
+    private func finishScan(app: TargetApp, pid: pid_t, epoch: Int, session: Int, generating: Bool, latest: String?, tailKey: String?) {
         guard scanSessions[app, default: 0] == session, processEpochs.accepts(app: app, pid: pid, epoch: epoch) else { return }
         extractingApps[app] = nil
 
@@ -503,7 +502,6 @@ final class AccessibilityProbe: AccessibilityProbing {
             generating: generating,
             message: latest,
             changeKey: tailKey,
-            allowsFastFallback: allowsFastFallback,
             isFrontmost: isFrontmost(app),
             fingerprint: fingerprint
         ) {

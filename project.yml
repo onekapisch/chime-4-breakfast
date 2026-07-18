@@ -32,8 +32,8 @@ targets:
         PRODUCT_NAME: Chime 4 Breakfast
         PRODUCT_MODULE_NAME: Chime4BreakfastApp
         EXECUTABLE_NAME: Chime4BreakfastApp
-        MARKETING_VERSION: 1.2.0
-        CURRENT_PROJECT_VERSION: 3
+        MARKETING_VERSION: 1.2.1
+        CURRENT_PROJECT_VERSION: 4
         VERSIONING_SYSTEM: apple-generic
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Chime 4 Breakfast
