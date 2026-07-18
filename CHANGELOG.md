@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Removed the transcript-change completion fallback. A changing Codex or Claude response can never trigger an alert by itself; sound, glow, and banners now require a confirmed generation-to-idle edge plus its confirmation observation.
+- Expanded generation detection to inspect Accessibility help and identifier metadata in addition to visible values, titles, and descriptions, improving discovery of Electron Stop controls without feeding metadata into message selection.
+
 ## 1.2.0 - 2026-07-12
 
 - Standardized the release asset filename and made the SHA-256 file portable: users can now verify the downloaded DMG directly without editing a local path.

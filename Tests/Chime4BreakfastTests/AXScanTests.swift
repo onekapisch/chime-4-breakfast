@@ -14,4 +14,11 @@ final class AXScanTests: XCTestCase {
         XCTAssertFalse(AXScan.indicatesGenerating(["Please stop after this step is complete."]))
         XCTAssertFalse(AXScan.indicatesGenerating(["The implementation finished generating assets."]))
     }
+
+    func test_generation_scan_reads_control_metadata_attributes() {
+        XCTAssertEqual(
+            AXScan.generationIndicatorAttributes,
+            ["AXValue", "AXTitle", "AXDescription", "AXHelp", "AXIdentifier"]
+        )
+    }
 }
