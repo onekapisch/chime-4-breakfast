@@ -34,7 +34,6 @@ final class AppState: ObservableObject {
     private var appColorCache: [TargetApp: Color] = [:]
     private var cancellables: Set<AnyCancellable> = []
     private var attentionResetTask: Task<Void, Never>?
-    private var hasRequestedAccessibilityPrompt = false
 
     init(
         preferencesStore: PreferencesStore = PreferencesStore(),
@@ -135,7 +134,6 @@ final class AppState: ObservableObject {
 
     func restartMonitoring() {
         let trusted = accessibilityAuthorizer.isTrusted()
-        requestAccessibilityPromptIfNeeded(trusted: trusted)
         let watchedApps = TargetApp.allCases.filter { preferences.isWatching($0) }
         guard !watchedApps.isEmpty else {
             accessibilityProbe.stop()
@@ -521,8 +519,6 @@ final class AppState: ObservableObject {
             return
         }
 
-        hasRequestedAccessibilityPrompt = false
-
         if status != .attention {
             status = preferences.isWatching(.codex) || preferences.isWatching(.claude) ? .watching : .idle
         }
@@ -545,12 +541,6 @@ final class AppState: ObservableObject {
             self.screenGlowController.dismiss()
             self.status = .watching
         }
-    }
-
-    private func requestAccessibilityPromptIfNeeded(trusted: Bool) {
-        guard !trusted, !hasRequestedAccessibilityPrompt else { return }
-        accessibilityAuthorizer.requestPrompt()
-        hasRequestedAccessibilityPrompt = true
     }
 
     private func formattedAppList(_ names: [String]) -> String {
