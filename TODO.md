@@ -23,7 +23,7 @@
 - Reduced AX work by avoiding full text extraction while responses are still streaming
 - Diagnostics capture for raw AX text, selected message, classification, and generating state
 - Polished menu bar popover with app icons, watcher health, event accents, and compact recent activity
-- Stable local debug signing through `scripts/run-debug.sh` so Accessibility permission survives rebuilds
+- Isolated Dev and Release bundle identities, with stable local Dev signing through `scripts/run-debug.sh`
 - Built-in sound previews now load the selected app-bundled WAV instead of falling back to the system beep
 - Per-event or per-app sound routing, including local system-spoken Codex and Claude cues
 - Sound playback now uses retained full-volume AVAudioPlayer instances with playback-result logging

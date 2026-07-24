@@ -30,20 +30,26 @@ mkdir -p "$BUILD_DIR"
 echo "==> Generating project"
 xcodegen generate >/dev/null
 
-echo "==> Building Release"
+echo "==> Building Distribution"
 xcodebuild \
   -project Chime4Breakfast.xcodeproj \
   -scheme Chime4BreakfastApp \
-  -configuration Release \
+  -configuration Distribution \
   -derivedDataPath "$DERIVED" \
   -destination 'platform=macOS' \
   build >/dev/null
 
-APP_PATH="$DERIVED/Build/Products/Release/$APP_NAME.app"
+APP_PATH="$DERIVED/Build/Products/Distribution/$APP_NAME.app"
 if [[ ! -d "$APP_PATH" ]]; then
   echo "Build did not produce $APP_PATH" >&2
   exit 1
 fi
+
+# Xcode registers every built application with LaunchServices. Remove this
+# temporary distribution path before signing so it cannot outrank the installed
+# app on the release maintainer's Mac.
+LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
+"$LSREGISTER" -u "$APP_PATH" >/dev/null 2>&1 || true
 
 if [[ -n "${DEVELOPER_ID:-}" ]]; then
   echo "==> Code signing with Developer ID"

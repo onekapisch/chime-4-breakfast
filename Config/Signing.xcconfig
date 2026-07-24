@@ -1,9 +1,10 @@
 // Code-signing configuration for Chime 4 Breakfast.
 //
 // Default: ad-hoc signing ("-"), so anyone can clone and build with no Apple
-// account, and CI stays green. Ad-hoc builds work fine, BUT their code
-// signature changes on every build, so macOS re-asks for Accessibility
-// permission each time you rebuild.
+// account, and CI stays green. Debug builds use a separate bundle identifier
+// and display name so they can never replace the downloaded release app's
+// Accessibility or login-item identity. An ad-hoc Debug signature still changes
+// on every build, so macOS may ask again for the Dev app after rebuilding.
 //
 // To make the Accessibility grant stick across rebuilds, sign with a stable
 // Apple Development identity. Run `scripts/setup-signing.sh` once; it writes a
