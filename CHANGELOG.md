@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.2 - 2026-07-24
+
+- Isolated normal source builds as `Chime 4 Breakfast Dev` with bundle identifier `app.chime4breakfast.debug`, preventing Xcode and DerivedData builds from taking over the downloaded app's Accessibility grant or login item.
+- Reserved the public bundle identity for the explicit `Distribution` configuration used by the signed release script.
+- Removed the temporary Distribution build from LaunchServices before packaging so the release build directory cannot outrank the installed app on a maintainer's Mac.
+- Updated local signing and launch scripts to operate only on the Dev app, and added a CI regression gate that keeps Debug and Release identities separate.
+
 ## 1.2.1 - 2026-07-18
 
 - Removed the transcript-change completion fallback. A changing Codex or Claude response can never trigger an alert by itself; sound, glow, and banners now require a confirmed generation-to-idle edge plus its confirmation observation.

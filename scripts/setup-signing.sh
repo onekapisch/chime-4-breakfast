@@ -18,7 +18,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 
-BUNDLE_ID="app.chime4breakfast"
+BUNDLE_ID="app.chime4breakfast.debug"
 LOCAL_XCCONFIG="Config/Local.xcconfig"
 
 echo "Looking for a Developer ID Application signing identity..."
@@ -72,8 +72,8 @@ if command -v xcodegen >/dev/null 2>&1; then
   echo "Regenerated Chime4Breakfast.xcodeproj"
 fi
 
-# Clear stale ad-hoc grants so the next launch registers the stable signature.
-echo "Resetting the old Accessibility permission for $BUNDLE_ID..."
+# Clear stale development grants without touching the downloaded release app.
+echo "Resetting the old development Accessibility permission for $BUNDLE_ID..."
 tccutil reset Accessibility "$BUNDLE_ID" >/dev/null 2>&1 || true
 
 cat <<EOF
@@ -81,6 +81,7 @@ cat <<EOF
 Done. From now on every build is signed with:
   $IDENTITY
 
-Next: build and launch once (./scripts/run-debug.sh), grant Accessibility when
-prompted, and it will stick across future rebuilds.
+Next: build and launch once (./scripts/run-debug.sh), then grant Accessibility
+to "Chime 4 Breakfast Dev". It will stick across future rebuilds and remains
+separate from the downloaded release app.
 EOF

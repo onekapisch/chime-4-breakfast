@@ -119,6 +119,8 @@ For a stable local Accessibility identity across debug builds, run this once:
 
 It writes a gitignored `Config/Local.xcconfig` with your stable signing identity. Grant Accessibility once more after it is configured.
 
+Normal source builds intentionally run as **Chime 4 Breakfast Dev** with bundle identifier `app.chime4breakfast.debug`. The Dev app has its own Accessibility grant and login item, so building Debug or Release from Xcode cannot overwrite or invalidate the downloaded app. The public identity is reserved for the signed `Distribution` build produced by `scripts/build-release.sh`. In System Settings, enable the entry whose name matches the app you are running.
+
 ## Roadmap
 
 - Validate and tune detection against more live Codex and Claude layouts

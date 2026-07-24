@@ -25,6 +25,9 @@ jobs:
       - name: Generate project
         run: xcodegen generate
 
+      - name: Verify build identities
+        run: ./Tests/BuildIdentityTests.sh
+
       - name: Run tests
         run: |
           xcodebuild test \

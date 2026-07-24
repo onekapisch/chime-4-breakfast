@@ -10,8 +10,8 @@ cd "$ROOT_DIR"
 xcodegen generate >/dev/null
 xcodebuild -project Chime4Breakfast.xcodeproj -scheme Chime4BreakfastApp -derivedDataPath "$DERIVED_DATA_PATH" -destination 'platform=macOS' build >/dev/null
 
-APP_PATH="$DERIVED_DATA_PATH/Build/Products/Debug/Chime 4 Breakfast.app"
-INSTALL_PATH="$HOME/Applications/Chime 4 Breakfast.app"
+APP_PATH="$DERIVED_DATA_PATH/Build/Products/Debug/Chime 4 Breakfast Dev.app"
+INSTALL_PATH="$HOME/Applications/Chime 4 Breakfast Dev.app"
 SIGNING_IDENTITY="${CHIME_DEBUG_SIGNING_IDENTITY:-}"
 
 if [[ ! -d "$APP_PATH" ]]; then
