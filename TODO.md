@@ -2,7 +2,7 @@
 
 ## P1
 
-- Live-validate the Stop-edge detector, fast-completion fallback, and away-state glow against current Codex and Claude Desktop builds
+- Live-validate the low-power monitoring path and Stop-edge detector against current Codex and Claude Desktop builds, including Activity Monitor idle CPU and finish alerts for short replies
 - Capture Codex diagnostics from long conversations and modal-window states to tune assistant-turn selection further
 
 ## P2

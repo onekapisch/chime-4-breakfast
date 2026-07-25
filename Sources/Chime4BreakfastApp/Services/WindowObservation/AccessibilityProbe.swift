@@ -50,6 +50,13 @@ enum AXScan {
     static let generationIndicatorAttributes = ["AXValue", "AXTitle", "AXDescription", "AXHelp", "AXIdentifier"]
     private static let maxGeneratingBudget = 12_000
 
+    private final class AccessibilityConfigurationCache: @unchecked Sendable {
+        let lock = NSLock()
+        var configuredPIDs = Set<pid_t>()
+    }
+
+    private static let accessibilityConfigurationCache = AccessibilityConfigurationCache()
+
     /// Bounds every AX message this process sends. Electron apps can beachball
     /// while rendering a large response; without this, a single attribute read
     /// can hang for the 6-second system default and a full walk can stall the
@@ -68,17 +75,15 @@ enum AXScan {
         _ = configureGlobalTimeout
         let appElement = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(appElement, 0.5)
-
-        // Ask Chromium/Electron to expose its full accessibility tree.
-        AXUIElementSetAttributeValue(appElement, "AXManualAccessibility" as CFString, kCFBooleanTrue)
-        AXUIElementSetAttributeValue(appElement, "AXEnhancedUserInterface" as CFString, kCFBooleanTrue)
+        configureElectronAccessibility(appElement, pid: pid)
 
         let deadline = CFAbsoluteTimeGetCurrent() + fullScanTimeLimit
         var windows: [[String]] = []
         for window in elementArray("AXWindows", of: appElement) ?? [] {
             var budget = maxBudget
             var strings: [String] = []
-            walk(window, depth: 0, budget: &budget, deadline: deadline, into: &strings)
+            var visited = Set<CFHashCode>()
+            walk(window, depth: 0, budget: &budget, deadline: deadline, visited: &visited, into: &strings)
             windows.append(strings)
         }
         var best = ConversationWindowSelector().select(from: windows) ?? windows.max(by: { $0.count < $1.count }) ?? []
@@ -87,7 +92,8 @@ enum AXScan {
         if best.count < 5 {
             var budget = maxBudget
             var strings: [String] = []
-            walk(appElement, depth: 0, budget: &budget, deadline: deadline, into: &strings)
+            var visited = Set<CFHashCode>()
+            walk(appElement, depth: 0, budget: &budget, deadline: deadline, visited: &visited, into: &strings)
             if strings.count > best.count { best = strings }
         }
 
@@ -101,20 +107,20 @@ enum AXScan {
         _ = configureGlobalTimeout
         let appElement = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(appElement, 0.5)
-
-        AXUIElementSetAttributeValue(appElement, "AXManualAccessibility" as CFString, kCFBooleanTrue)
-        AXUIElementSetAttributeValue(appElement, "AXEnhancedUserInterface" as CFString, kCFBooleanTrue)
+        configureElectronAccessibility(appElement, pid: pid)
 
         let deadline = CFAbsoluteTimeGetCurrent() + generatingScanTimeLimit
         for window in elementArray("AXWindows", of: appElement) ?? [] {
             var budget = maxGeneratingBudget
-            if walkForGenerating(window, depth: 0, budget: &budget, deadline: deadline) {
+            var visited = Set<CFHashCode>()
+            if walkForGenerating(window, depth: 0, budget: &budget, deadline: deadline, visited: &visited) {
                 return true
             }
         }
 
         var budget = maxGeneratingBudget
-        return walkForGenerating(appElement, depth: 0, budget: &budget, deadline: deadline)
+        var visited = Set<CFHashCode>()
+        return walkForGenerating(appElement, depth: 0, budget: &budget, deadline: deadline, visited: &visited)
     }
 
     static func indicatesGenerating(_ strings: [String]) -> Bool {
@@ -151,8 +157,16 @@ enum AXScan {
             || s.hasPrefix("stop streaming")
     }
 
-    private static func walk(_ element: AXUIElement, depth: Int, budget: inout Int, deadline: CFAbsoluteTime, into out: inout [String]) {
+    private static func walk(
+        _ element: AXUIElement,
+        depth: Int,
+        budget: inout Int,
+        deadline: CFAbsoluteTime,
+        visited: inout Set<CFHashCode>,
+        into out: inout [String]
+    ) {
         guard depth < maxDepth, budget > 0, CFAbsoluteTimeGetCurrent() < deadline else { return }
+        guard visited.insert(CFHash(element)).inserted else { return }
         budget -= 1
 
         for attribute in ["AXValue", "AXTitle", "AXDescription"] {
@@ -165,13 +179,20 @@ enum AXScan {
         for attribute in ["AXChildren", "AXRows", "AXContents"] {
             guard let children = elementArray(attribute, of: element) else { continue }
             for child in children {
-                walk(child, depth: depth + 1, budget: &budget, deadline: deadline, into: &out)
+                walk(child, depth: depth + 1, budget: &budget, deadline: deadline, visited: &visited, into: &out)
             }
         }
     }
 
-    private static func walkForGenerating(_ element: AXUIElement, depth: Int, budget: inout Int, deadline: CFAbsoluteTime) -> Bool {
+    private static func walkForGenerating(
+        _ element: AXUIElement,
+        depth: Int,
+        budget: inout Int,
+        deadline: CFAbsoluteTime,
+        visited: inout Set<CFHashCode>
+    ) -> Bool {
         guard depth < maxDepth, budget > 0, CFAbsoluteTimeGetCurrent() < deadline else { return false }
+        guard visited.insert(CFHash(element)).inserted else { return false }
         budget -= 1
 
         for attribute in generationIndicatorAttributes {
@@ -182,7 +203,13 @@ enum AXScan {
 
         for attribute in ["AXChildren", "AXRows", "AXContents"] {
             guard let children = elementArray(attribute, of: element) else { continue }
-            for child in children where walkForGenerating(child, depth: depth + 1, budget: &budget, deadline: deadline) {
+            for child in children where walkForGenerating(
+                child,
+                depth: depth + 1,
+                budget: &budget,
+                deadline: deadline,
+                visited: &visited
+            ) {
                 return true
             }
         }
@@ -202,6 +229,16 @@ enum AXScan {
     private static func elementArray(_ attribute: String, of element: AXUIElement) -> [AXUIElement]? {
         value(attribute, of: element) as? [AXUIElement]
     }
+
+    private static func configureElectronAccessibility(_ appElement: AXUIElement, pid: pid_t) {
+        accessibilityConfigurationCache.lock.lock()
+        let shouldConfigure = accessibilityConfigurationCache.configuredPIDs.insert(pid).inserted
+        accessibilityConfigurationCache.lock.unlock()
+
+        guard shouldConfigure else { return }
+        AXUIElementSetAttributeValue(appElement, "AXManualAccessibility" as CFString, kCFBooleanTrue)
+        AXUIElementSetAttributeValue(appElement, "AXEnhancedUserInterface" as CFString, kCFBooleanTrue)
+    }
 }
 
 @MainActor
@@ -215,6 +252,7 @@ final class AccessibilityProbe: AccessibilityProbing {
     private var snapshotHandler: AccessibilitySnapshotHandler?
     private var statusHandler: AccessibilityStatusHandler?
     private var coalesceTask: Task<Void, Never>?
+    private var lastEventScanAt: Date?
     // Each app scans independently, so a slow or hung app can never delay the
     // other one's detection. Sessions invalidate in-flight results on restart.
     private var extractingApps: [TargetApp: Date] = [:]
@@ -250,17 +288,6 @@ final class AccessibilityProbe: AccessibilityProbing {
         chimeDebugLog("probe.start watching=[\(apps.map { $0.rawValue }.joined(separator: ","))]")
 
         tick()
-
-        // .common mode so the poll keeps firing while menus / the popover are
-        // open (default-mode timers stall during event tracking).
-        let pollTimer = Timer(timeInterval: 1.5, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.tick()
-            }
-        }
-        pollTimer.tolerance = 0.2
-        RunLoop.main.add(pollTimer, forMode: .common)
-        timer = pollTimer
     }
 
     /// Keep the process responsive while a response is generating or its Stop
@@ -295,6 +322,7 @@ final class AccessibilityProbe: AccessibilityProbing {
         timer = nil
         coalesceTask?.cancel()
         coalesceTask = nil
+        lastEventScanAt = nil
         endActivityIfNeeded()
         if let activationObserver {
             NSWorkspace.shared.notificationCenter.removeObserver(activationObserver)
@@ -371,10 +399,19 @@ final class AccessibilityProbe: AccessibilityProbing {
         finishDetector.noteActivation(bundleIdentifier: activatedBundleID)
     }
 
-    /// Collapses bursts of Accessibility change notifications (common while a
-    /// response is streaming) into at most one extraction every 250 ms.
-    func scheduleCoalescedTick() {
+    /// Collapses Accessibility notifications into a low-rate idle wake-up, then
+    /// returns to a fast cadence only after a real generation edge is observed.
+    func scheduleCoalescedTick(force: Bool = false) {
         guard coalesceTask == nil else { return }
+        let hasActiveFinishEdge = watchedApps.contains { finishDetector.needsMessage(for: $0) }
+        let now = Date()
+        if !force,
+           let lastEventScanAt,
+           now.timeIntervalSince(lastEventScanAt) < MonitoringScanPolicy.eventCooldown(hasActiveFinishEdge: hasActiveFinishEdge) {
+            return
+        }
+        lastEventScanAt = now
+
         coalesceTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .milliseconds(250))
             guard let self, !Task.isCancelled else { return }
@@ -424,6 +461,8 @@ final class AccessibilityProbe: AccessibilityProbing {
     }
 
     private func tick() {
+        defer { scheduleNextPoll() }
+
         let trusted = AXIsProcessTrusted()
         guard trusted else {
             chimeDebugLog("tick trusted=false (no Accessibility permission)")
@@ -467,13 +506,17 @@ final class AccessibilityProbe: AccessibilityProbing {
         extractingApps[app] = Date()
         let session = scanSessions[app, default: 0]
         let selector = self.selector
+        let hasActiveFinishEdge = finishDetector.needsMessage(for: app)
 
         Task.detached(priority: .utility) {
             var generating = AXScan.indicatesGenerating(pid: pid)
             var latest: String?
             var tailKey: String?
 
-            if !generating {
+            if MonitoringScanPolicy.shouldExtractMessage(
+                hasActiveFinishEdge: hasActiveFinishEdge,
+                generating: generating
+            ) {
                 let strings = AXScan.collectStrings(pid: pid)
                 generating = AXScan.indicatesGenerating(strings)
                 if !generating {
@@ -514,9 +557,27 @@ final class AccessibilityProbe: AccessibilityProbing {
         // never leave the sequence hostage to the slow timer: self-schedule the
         // follow-up while the detector is mid-flight.
         if finishDetector.needsMessage(for: app) {
-            scheduleCoalescedTick()
+            scheduleCoalescedTick(force: true)
         }
         updateActivityState()
+        scheduleNextPoll()
+    }
+
+    private func scheduleNextPoll() {
+        timer?.invalidate()
+
+        let hasActiveFinishEdge = watchedApps.contains { finishDetector.needsMessage(for: $0) }
+        let pollTimer = Timer(
+            timeInterval: MonitoringScanPolicy.pollInterval(hasActiveFinishEdge: hasActiveFinishEdge),
+            repeats: false
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.tick()
+            }
+        }
+        pollTimer.tolerance = hasActiveFinishEdge ? 0.1 : 3
+        RunLoop.main.add(pollTimer, forMode: .common)
+        timer = pollTimer
     }
 
     private func isFrontmost(_ app: TargetApp) -> Bool {
