@@ -77,6 +77,38 @@ final class FinishEdgeDetectorTests: XCTestCase {
         XCTAssertEqual(snapshot?.userWasAway, true)
     }
 
+    func test_marks_only_a_stop_to_idle_transition_as_needing_immediate_confirmation() {
+        let detector = FinishEdgeDetector()
+        detector.reset(watching: [.codex])
+
+        _ = detector.process(
+            app: .codex,
+            generating: true,
+            message: nil,
+            isFrontmost: false,
+            fingerprint: testFingerprint
+        )
+        XCTAssertFalse(detector.isAwaitingConfirmation(for: .codex))
+
+        _ = detector.process(
+            app: .codex,
+            generating: false,
+            message: "Completed output.",
+            isFrontmost: false,
+            fingerprint: testFingerprint
+        )
+        XCTAssertTrue(detector.isAwaitingConfirmation(for: .codex))
+
+        _ = detector.process(
+            app: .codex,
+            generating: false,
+            message: "Completed output.",
+            isFrontmost: false,
+            fingerprint: testFingerprint
+        )
+        XCTAssertFalse(detector.isAwaitingConfirmation(for: .codex))
+    }
+
     func test_consecutive_stop_edges_with_same_selected_message_both_emit() {
         // Rapid short replies ("Hi." → "I'm good…") can select the same
         // transcript candidate twice; each confirmed Stop edge is still a real

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.3 - 2026-08-03
+
+- Rebuilt background monitoring for low idle energy use. Idle checks now use a 30-second recovery cadence and rate-limit Accessibility event bursts, while the one-second cadence remains reserved for a known generation or finish confirmation.
+- Removed the unconditional idle transcript extraction. Full response text is now read only after the app has observed a generation edge and needs to confirm its completion.
+- Configure Electron Accessibility once per target-process launch and de-duplicate overlapping Accessibility child paths during traversal.
+- Added deterministic tests for low-power cadence, event throttling, and finish-edge-only message extraction.
+- Fixed a fast-poll loop that could repeatedly rescan while a provider still exposed a Stop control. Active generation now uses the one-second cadence, and the 250 ms check is reserved for the single final confirmation pass.
+- When one provider is generating, the other provider now remains event-driven with a 30-second recovery scan instead of being rescanned on every active poll.
+- Cache the verified generating-control path while a response is active, then fall back to a complete Accessibility traversal only when that path changes or disappears. This removes repeated full-tree work without weakening Stop-edge confirmation.
+
 ## 1.2.2 - 2026-07-24
 
 - Isolated normal source builds as `Chime 4 Breakfast Dev` with bundle identifier `app.chime4breakfast.debug`, preventing Xcode and DerivedData builds from taking over the downloaded app's Accessibility grant or login item.

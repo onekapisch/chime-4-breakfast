@@ -41,6 +41,10 @@ final class FinishEdgeDetector {
         return state.wasGenerating || state.awaitingConfirm
     }
 
+    func isAwaitingConfirmation(for app: TargetApp) -> Bool {
+        states[app]?.awaitingConfirm ?? false
+    }
+
     func process(
         app: TargetApp,
         generating: Bool,

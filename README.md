@@ -90,6 +90,8 @@ Read the full [support matrix](docs/SUPPORT.md) before relying on alerts in a ne
 
 Chime detects a finish edge through the macOS Accessibility API: the supported app's generating or Stop control disappears, the change is confirmed on the next sample, and the latest visible assistant reply is classified with deterministic rules. No model call is involved.
 
+Monitoring is event-led: idle recovery is low frequency, and faster scans run only while a response is active or its Stop edge is being confirmed.
+
 The app works locally. It has no account, analytics, telemetry, or server. Session activity remains on the device and clears when the app exits. Diagnostics are explicit because a report can contain visible prompt or reply snippets; review it before sharing.
 
 See [SECURITY.md](SECURITY.md) for data-handling details and [Troubleshooting](docs/TROUBLESHOOTING.md) for missed cues, permissions, and diagnostics.
