@@ -15,7 +15,7 @@ final class MonitoringScanPolicyTests: XCTestCase {
     }
 
     func test_active_accessibility_events_keep_the_finish_confirmation_responsive() {
-        XCTAssertEqual(MonitoringScanPolicy.eventCooldown(hasActiveFinishEdge: true), 0.25)
+        XCTAssertEqual(MonitoringScanPolicy.eventCooldown(hasActiveFinishEdge: true), 0.5)
     }
 
     func test_message_extraction_only_runs_after_a_generation_edge() {
@@ -30,6 +30,40 @@ final class MonitoringScanPolicyTests: XCTestCase {
         XCTAssertTrue(MonitoringScanPolicy.shouldExtractMessage(
             hasActiveFinishEdge: true,
             generating: false
+        ))
+    }
+
+    func test_active_poll_only_rescans_the_app_with_a_pending_finish_edge() {
+        let now = Date()
+
+        XCTAssertTrue(MonitoringScanPolicy.shouldScan(
+            hasActiveFinishEdge: true,
+            isEventDriven: false,
+            lastIdleScanAt: now,
+            now: now
+        ))
+        XCTAssertFalse(MonitoringScanPolicy.shouldScan(
+            hasActiveFinishEdge: false,
+            isEventDriven: false,
+            lastIdleScanAt: now.addingTimeInterval(-29),
+            now: now
+        ))
+        XCTAssertTrue(MonitoringScanPolicy.shouldScan(
+            hasActiveFinishEdge: false,
+            isEventDriven: false,
+            lastIdleScanAt: now.addingTimeInterval(-30),
+            now: now
+        ))
+    }
+
+    func test_accessibility_event_always_scans_its_target_immediately() {
+        let now = Date()
+
+        XCTAssertTrue(MonitoringScanPolicy.shouldScan(
+            hasActiveFinishEdge: false,
+            isEventDriven: true,
+            lastIdleScanAt: now,
+            now: now
         ))
     }
 }

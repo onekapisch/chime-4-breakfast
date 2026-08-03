@@ -9,10 +9,29 @@ enum MonitoringScanPolicy {
     }
 
     static func eventCooldown(hasActiveFinishEdge: Bool) -> TimeInterval {
-        hasActiveFinishEdge ? 0.25 : 2
+        hasActiveFinishEdge ? 0.5 : 2
     }
 
     static func shouldExtractMessage(hasActiveFinishEdge: Bool, generating: Bool) -> Bool {
         hasActiveFinishEdge && !generating
+    }
+
+    static func shouldScan(
+        hasActiveFinishEdge: Bool,
+        isEventDriven: Bool,
+        lastIdleScanAt: Date?,
+        now: Date
+    ) -> Bool {
+        if hasActiveFinishEdge || isEventDriven || lastIdleScanAt == nil {
+            return true
+        }
+
+        return now.timeIntervalSince(lastIdleScanAt!) >= pollInterval(hasActiveFinishEdge: false)
+    }
+}
+
+enum GenerationIndicatorCachePolicy {
+    static func shouldPerformFullTraversal(cachedIndicatorMatches: Bool?) -> Bool {
+        cachedIndicatorMatches != true
     }
 }

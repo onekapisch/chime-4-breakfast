@@ -2,7 +2,7 @@
 
 ## P1
 
-- Live-validate the low-power monitoring path and Stop-edge detector against current Codex and Claude Desktop builds, including Activity Monitor idle CPU and finish alerts for short replies
+- Manually validate final v1.2.3 delivery for a short Codex and Claude reply before broad promotion; low-power runtime profiling is complete
 - Capture Codex diagnostics from long conversations and modal-window states to tune assistant-turn selection further
 
 ## P2
@@ -40,3 +40,4 @@
 - Launch at login and Clear recent activity
 - Whole-word classifier matching
 - MIT license + CI workflow
+- Event-led low-power monitoring with 30-second idle recovery, per-provider active scans, and cached generating-control paths with safe full-scan fallback

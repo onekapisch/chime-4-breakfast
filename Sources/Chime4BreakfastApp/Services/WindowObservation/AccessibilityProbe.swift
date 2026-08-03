@@ -6,6 +6,30 @@ import Foundation
 typealias AccessibilitySnapshotHandler = (WindowSnapshot) -> Void
 typealias AccessibilityStatusHandler = (_ permissionGranted: Bool, _ runningApps: Set<TargetApp>) -> Void
 
+struct GenerationIndicatorPath: Sendable {
+    enum Root: Sendable {
+        case window(Int)
+        case application
+    }
+
+    struct Step: Sendable {
+        let attribute: String
+        let index: Int
+    }
+
+    let root: Root
+    let steps: [Step]
+
+    func appending(attribute: String, index: Int) -> GenerationIndicatorPath {
+        GenerationIndicatorPath(root: root, steps: steps + [Step(attribute: attribute, index: index)])
+    }
+}
+
+struct GenerationDetection: Sendable {
+    let isGenerating: Bool
+    let indicatorPath: GenerationIndicatorPath?
+}
+
 func chimeDebugLog(_ message: @autoclosure () -> String) {
 #if DEBUG
     guard ProcessInfo.processInfo.environment["CHIME_DEBUG_LOG"] == "1" else { return }
@@ -104,23 +128,51 @@ enum AXScan {
     /// thinking/reasoning status is present - so the current text is not yet a
     /// finished reply and must not trigger an alert.
     static func indicatesGenerating(pid: pid_t) -> Bool {
+        generationDetection(pid: pid, cachedPath: nil).isGenerating
+    }
+
+    static func generationDetection(pid: pid_t, cachedPath: GenerationIndicatorPath?) -> GenerationDetection {
         _ = configureGlobalTimeout
         let appElement = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(appElement, 0.5)
         configureElectronAccessibility(appElement, pid: pid)
 
+        if let cachedPath {
+            let cachedIndicatorMatches = element(at: cachedPath, in: appElement).map(isGeneratingIndicator)
+            if !GenerationIndicatorCachePolicy.shouldPerformFullTraversal(cachedIndicatorMatches: cachedIndicatorMatches) {
+                return GenerationDetection(isGenerating: true, indicatorPath: cachedPath)
+            }
+        }
+
         let deadline = CFAbsoluteTimeGetCurrent() + generatingScanTimeLimit
-        for window in elementArray("AXWindows", of: appElement) ?? [] {
+        for (index, window) in (elementArray("AXWindows", of: appElement) ?? []).enumerated() {
             var budget = maxGeneratingBudget
             var visited = Set<CFHashCode>()
-            if walkForGenerating(window, depth: 0, budget: &budget, deadline: deadline, visited: &visited) {
-                return true
+            let path = GenerationIndicatorPath(root: .window(index), steps: [])
+            if let indicatorPath = findGeneratingIndicator(
+                in: window,
+                depth: 0,
+                budget: &budget,
+                deadline: deadline,
+                visited: &visited,
+                path: path
+            ) {
+                return GenerationDetection(isGenerating: true, indicatorPath: indicatorPath)
             }
         }
 
         var budget = maxGeneratingBudget
         var visited = Set<CFHashCode>()
-        return walkForGenerating(appElement, depth: 0, budget: &budget, deadline: deadline, visited: &visited)
+        let path = GenerationIndicatorPath(root: .application, steps: [])
+        let indicatorPath = findGeneratingIndicator(
+            in: appElement,
+            depth: 0,
+            budget: &budget,
+            deadline: deadline,
+            visited: &visited,
+            path: path
+        )
+        return GenerationDetection(isGenerating: indicatorPath != nil, indicatorPath: indicatorPath)
     }
 
     static func indicatesGenerating(_ strings: [String]) -> Bool {
@@ -184,37 +236,39 @@ enum AXScan {
         }
     }
 
-    private static func walkForGenerating(
-        _ element: AXUIElement,
+    private static func findGeneratingIndicator(
+        in element: AXUIElement,
         depth: Int,
         budget: inout Int,
         deadline: CFAbsoluteTime,
-        visited: inout Set<CFHashCode>
-    ) -> Bool {
-        guard depth < maxDepth, budget > 0, CFAbsoluteTimeGetCurrent() < deadline else { return false }
-        guard visited.insert(CFHash(element)).inserted else { return false }
+        visited: inout Set<CFHashCode>,
+        path: GenerationIndicatorPath
+    ) -> GenerationIndicatorPath? {
+        guard depth < maxDepth, budget > 0, CFAbsoluteTimeGetCurrent() < deadline else { return nil }
+        guard visited.insert(CFHash(element)).inserted else { return nil }
         budget -= 1
 
-        for attribute in generationIndicatorAttributes {
-            if let text = string(attribute, of: element), isGeneratingString(text) {
-                return true
-            }
+        if isGeneratingIndicator(element) {
+            return path
         }
 
         for attribute in ["AXChildren", "AXRows", "AXContents"] {
             guard let children = elementArray(attribute, of: element) else { continue }
-            for child in children where walkForGenerating(
-                child,
-                depth: depth + 1,
-                budget: &budget,
-                deadline: deadline,
-                visited: &visited
-            ) {
-                return true
+            for (index, child) in children.enumerated() {
+                if let indicatorPath = findGeneratingIndicator(
+                    in: child,
+                    depth: depth + 1,
+                    budget: &budget,
+                    deadline: deadline,
+                    visited: &visited,
+                    path: path.appending(attribute: attribute, index: index)
+                ) {
+                    return indicatorPath
+                }
             }
         }
 
-        return false
+        return nil
     }
 
     private static func value(_ attribute: String, of element: AXUIElement) -> CFTypeRef? {
@@ -228,6 +282,34 @@ enum AXScan {
 
     private static func elementArray(_ attribute: String, of element: AXUIElement) -> [AXUIElement]? {
         value(attribute, of: element) as? [AXUIElement]
+    }
+
+    private static func element(at path: GenerationIndicatorPath, in appElement: AXUIElement) -> AXUIElement? {
+        var element: AXUIElement
+        switch path.root {
+        case .window(let index):
+            guard let windows = elementArray("AXWindows", of: appElement), windows.indices.contains(index) else {
+                return nil
+            }
+            element = windows[index]
+        case .application:
+            element = appElement
+        }
+
+        for step in path.steps {
+            guard let children = elementArray(step.attribute, of: element), children.indices.contains(step.index) else {
+                return nil
+            }
+            element = children[step.index]
+        }
+        return element
+    }
+
+    private static func isGeneratingIndicator(_ element: AXUIElement) -> Bool {
+        generationIndicatorAttributes.contains { attribute in
+            guard let text = string(attribute, of: element) else { return false }
+            return isGeneratingString(text)
+        }
     }
 
     private static func configureElectronAccessibility(_ appElement: AXUIElement, pid: pid_t) {
@@ -253,6 +335,8 @@ final class AccessibilityProbe: AccessibilityProbing {
     private var statusHandler: AccessibilityStatusHandler?
     private var coalesceTask: Task<Void, Never>?
     private var lastEventScanAt: Date?
+    private var lastIdleScanAt: [TargetApp: Date] = [:]
+    private var generationIndicatorPaths: [TargetApp: GenerationIndicatorPath] = [:]
     // Each app scans independently, so a slow or hung app can never delay the
     // other one's detection. Sessions invalidate in-flight results on restart.
     private var extractingApps: [TargetApp: Date] = [:]
@@ -287,7 +371,7 @@ final class AccessibilityProbe: AccessibilityProbing {
         registerLifecycleObservers()
         chimeDebugLog("probe.start watching=[\(apps.map { $0.rawValue }.joined(separator: ","))]")
 
-        tick()
+        tick(scanningAllApps: true)
     }
 
     /// Keep the process responsive while a response is generating or its Stop
@@ -323,6 +407,8 @@ final class AccessibilityProbe: AccessibilityProbing {
         coalesceTask?.cancel()
         coalesceTask = nil
         lastEventScanAt = nil
+        lastIdleScanAt.removeAll()
+        generationIndicatorPaths.removeAll()
         endActivityIfNeeded()
         if let activationObserver {
             NSWorkspace.shared.notificationCenter.removeObserver(activationObserver)
@@ -379,6 +465,8 @@ final class AccessibilityProbe: AccessibilityProbing {
         invalidateInFlightScans()
         coalesceTask?.cancel()
         coalesceTask = nil
+        lastIdleScanAt.removeAll()
+        generationIndicatorPaths.removeAll()
         finishDetector.reset(watching: watchedApps)
         processEpochs.invalidateAll(watchedApps)
         endActivityIfNeeded()
@@ -390,6 +478,7 @@ final class AccessibilityProbe: AccessibilityProbing {
             scanSessions[app, default: 0] += 1
         }
         extractingApps.removeAll()
+        generationIndicatorPaths.removeAll()
     }
 
     /// Event-driven away detection: the instant the user switches to another app
@@ -401,7 +490,7 @@ final class AccessibilityProbe: AccessibilityProbing {
 
     /// Collapses Accessibility notifications into a low-rate idle wake-up, then
     /// returns to a fast cadence only after a real generation edge is observed.
-    func scheduleCoalescedTick(force: Bool = false) {
+    func scheduleCoalescedTick(force: Bool = false, scanningAllApps: Bool = true) {
         guard coalesceTask == nil else { return }
         let hasActiveFinishEdge = watchedApps.contains { finishDetector.needsMessage(for: $0) }
         let now = Date()
@@ -416,7 +505,7 @@ final class AccessibilityProbe: AccessibilityProbing {
             try? await Task.sleep(for: .milliseconds(250))
             guard let self, !Task.isCancelled else { return }
             self.coalesceTask = nil
-            self.tick()
+            self.tick(scanningAllApps: scanningAllApps)
         }
     }
 
@@ -460,7 +549,7 @@ final class AccessibilityProbe: AccessibilityProbing {
         return lines.joined(separator: "\n")
     }
 
-    private func tick() {
+    private func tick(scanningAllApps: Bool = false) {
         defer { scheduleNextPoll() }
 
         let trusted = AXIsProcessTrusted()
@@ -476,6 +565,8 @@ final class AccessibilityProbe: AccessibilityProbing {
         for app in Set(watchedApps).subtracting(running) {
             finishDetector.reset(app: app)
             processEpochs.invalidate(app: app)
+            lastIdleScanAt[app] = nil
+            generationIndicatorPaths[app] = nil
             removeObserver(for: app)
         }
         updateActivityState()
@@ -487,8 +578,23 @@ final class AccessibilityProbe: AccessibilityProbing {
                 finishDetector.reset(app: app)
                 scanSessions[app, default: 0] += 1
                 extractingApps[app] = nil
+                lastIdleScanAt[app] = nil
+                generationIndicatorPaths[app] = nil
             }
             installObserverIfNeeded(for: app, runningApp: runningApp)
+            let hasActiveFinishEdge = finishDetector.needsMessage(for: app)
+            let now = Date()
+            guard MonitoringScanPolicy.shouldScan(
+                hasActiveFinishEdge: hasActiveFinishEdge,
+                isEventDriven: scanningAllApps,
+                lastIdleScanAt: lastIdleScanAt[app],
+                now: now
+            ) else {
+                continue
+            }
+            if !hasActiveFinishEdge {
+                lastIdleScanAt[app] = now
+            }
             beginScanIfIdle(app: app, pid: runningApp.processIdentifier, epoch: process.epoch)
         }
     }
@@ -507,9 +613,11 @@ final class AccessibilityProbe: AccessibilityProbing {
         let session = scanSessions[app, default: 0]
         let selector = self.selector
         let hasActiveFinishEdge = finishDetector.needsMessage(for: app)
+        let cachedIndicatorPath = generationIndicatorPaths[app]
 
         Task.detached(priority: .utility) {
-            var generating = AXScan.indicatesGenerating(pid: pid)
+            let detection = AXScan.generationDetection(pid: pid, cachedPath: cachedIndicatorPath)
+            var generating = detection.isGenerating
             var latest: String?
             var tailKey: String?
 
@@ -527,7 +635,16 @@ final class AccessibilityProbe: AccessibilityProbing {
             }
 
             await MainActor.run { [weak self] in
-                self?.finishScan(app: app, pid: pid, epoch: epoch, session: session, generating: generating, latest: latest, tailKey: tailKey)
+                self?.finishScan(
+                    app: app,
+                    pid: pid,
+                    epoch: epoch,
+                    session: session,
+                    generating: generating,
+                    latest: latest,
+                    tailKey: tailKey,
+                    indicatorPath: detection.indicatorPath
+                )
             }
         }
     }
@@ -536,9 +653,19 @@ final class AccessibilityProbe: AccessibilityProbing {
     /// showing its Stop control (generating true→false), confirmed across one
     /// extra observation to ignore flicker, and rate-limited by the detector's
     /// refire debounce.
-    private func finishScan(app: TargetApp, pid: pid_t, epoch: Int, session: Int, generating: Bool, latest: String?, tailKey: String?) {
+    private func finishScan(
+        app: TargetApp,
+        pid: pid_t,
+        epoch: Int,
+        session: Int,
+        generating: Bool,
+        latest: String?,
+        tailKey: String?,
+        indicatorPath: GenerationIndicatorPath?
+    ) {
         guard scanSessions[app, default: 0] == session, processEpochs.accepts(app: app, pid: pid, epoch: epoch) else { return }
         extractingApps[app] = nil
+        generationIndicatorPaths[app] = indicatorPath
 
         if let snapshot = finishDetector.process(
             app: app,
@@ -556,8 +683,8 @@ final class AccessibilityProbe: AccessibilityProbing {
         // next poll - but once streaming stops, AX notifications stop too, so
         // never leave the sequence hostage to the slow timer: self-schedule the
         // follow-up while the detector is mid-flight.
-        if finishDetector.needsMessage(for: app) {
-            scheduleCoalescedTick(force: true)
+        if finishDetector.isAwaitingConfirmation(for: app) {
+            scheduleCoalescedTick(force: true, scanningAllApps: false)
         }
         updateActivityState()
         scheduleNextPoll()
