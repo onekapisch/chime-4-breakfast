@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.4 - 2026-08-27
+
+- Prevented a macOS menu-bar scene restoration failure that could immediately terminate Chime without a crash when its status item had been restored as hidden. Chime now owns the insertion state of its menu-bar item and launches reliably without resetting user preferences.
+
 ## 1.2.3 - 2026-08-03
 
 - Rebuilt background monitoring for low idle energy use. Idle checks now use a 30-second recovery cadence and rate-limit Accessibility event bursts, while the one-second cadence remains reserved for a known generation or finish confirmation.

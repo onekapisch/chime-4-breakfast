@@ -41,3 +41,4 @@
 - Whole-word classifier matching
 - MIT license + CI workflow
 - Event-led low-power monitoring with 30-second idle recovery, per-provider active scans, and cached generating-control paths with safe full-scan fallback
+- Explicit menu-bar insertion state so stale macOS scene restoration cannot silently terminate the app at launch
