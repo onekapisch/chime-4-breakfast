@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.5 - 2026-08-27
+
+- Replaced the invisible menu-bar-only launch path with a standard macOS control window. Chime now opens its complete configuration and monitoring UI immediately from Applications or the Dock, even when macOS does not assign a menu-bar slot.
+- Kept the existing public bundle identifier, so updating does not require users to grant Accessibility again.
+
 ## 1.2.4 - 2026-08-27
 
 - Prevented a macOS menu-bar scene restoration failure that could immediately terminate Chime without a crash when its status item had been restored as hidden. Chime now owns the insertion state of its menu-bar item and launches reliably without resetting user preferences.

@@ -6,7 +6,7 @@
 
 ### Know when your AI is ready.
 
-A native macOS menu-bar utility for **Codex Desktop** and **Claude Desktop**. Chime detects a finished response, distinguishes a normal completion from a likely blocker, and alerts you with the cue you chose: sound, app-colored screen glow, and optional banner.
+A native macOS utility for **Codex Desktop** and **Claude Desktop**. Chime detects a finished response, distinguishes a normal completion from a likely blocker, and alerts you with the cue you chose: sound, app-colored screen glow, and optional banner.
 
 <p>
   <a href="https://github.com/onekapisch/chime-4-breakfast/releases/latest/download/Chime-4-Breakfast.dmg"><img src="https://img.shields.io/badge/Download-macOS_14%2B-0A84FF?style=for-the-badge&logo=apple&logoColor=white" alt="Download Chime 4 Breakfast for macOS" /></a>
@@ -19,9 +19,9 @@ A native macOS menu-bar utility for **Codex Desktop** and **Claude Desktop**. Ch
 </div>
 
 <div align="center">
-<img src=".github/assets/hero.png" width="840" alt="Chime 4 Breakfast menu bar utility and current popover" />
+<img src=".github/assets/hero.png" width="840" alt="Chime 4 Breakfast control window" />
 <br/>
-<sub>One compact popover for the alert settings that matter.</sub>
+<sub>One compact control window for the alert settings that matter.</sub>
 </div>
 
 ## What changed
@@ -32,7 +32,7 @@ A native macOS menu-bar utility for **Codex Desktop** and **Claude Desktop**. Ch
 - **Clear support boundaries.** Supported setup, known limits, diagnostics, privacy notes, and the updater plan are documented in this repository.
 
 <div align="center">
-<img src=".github/assets/popover.png" width="390" alt="Current Chime 4 Breakfast popover with setup test control, app selection, sounds, and glow settings" />
+<img src=".github/assets/popover.png" width="390" alt="Current Chime 4 Breakfast control window with setup test control, app selection, sounds, and glow settings" />
 </div>
 
 ## The cue, not another inbox
@@ -68,7 +68,7 @@ The tones are generated from scratch by [`scripts/gen-sounds.py`](scripts/gen-so
 
 1. Download [**Chime-4-Breakfast.dmg**](https://github.com/onekapisch/chime-4-breakfast/releases/latest/download/Chime-4-Breakfast.dmg), drag Chime into Applications, and open it.
 2. Grant the one-time Accessibility permission in **System Settings -> Privacy & Security -> Accessibility**.
-3. Open the popover, choose **Test Codex** or **Test Claude** from the header checkmark, and confirm the cue before stepping away.
+3. Open the Chime window, choose **Test Codex** or **Test Claude** from the header checkmark, and confirm the cue before stepping away.
 
 <div align="center">
 <img src=".github/assets/first-run.png" width="840" alt="Install Chime 4 Breakfast, grant Accessibility permission, and start watching" />
@@ -153,7 +153,7 @@ Accessibility is the macOS API that lets Chime observe the supported app's visib
 <details>
 <summary><strong>How do I know it works before I leave?</strong></summary>
 
-Use the checkmark badge in the popover header and choose Test Codex or Test Claude. It exercises the selected sound and glow without waiting for a real response.
+Use the checkmark badge in the Chime window header and choose Test Codex or Test Claude. It exercises the selected sound and glow without waiting for a real response.
 </details>
 
 <details>
