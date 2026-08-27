@@ -2,7 +2,7 @@
 
 ## P1
 
-- Manually validate final v1.2.3 delivery for a short Codex and Claude reply before broad promotion; low-power runtime profiling is complete
+- Manually validate final v1.2.5 delivery for a short Codex and Claude reply before broad promotion; low-power runtime profiling is complete
 - Capture Codex diagnostics from long conversations and modal-window states to tune assistant-turn selection further
 
 ## P2
@@ -22,7 +22,7 @@
 - Assistant-turn message selection for labeled Codex/Claude transcript text
 - Reduced AX work by avoiding full text extraction while responses are still streaming
 - Diagnostics capture for raw AX text, selected message, classification, and generating state
-- Polished menu bar popover with app icons, watcher health, event accents, and compact recent activity
+- Polished Chime control surface with app icons, watcher health, event accents, and compact recent activity
 - Isolated Dev and Release bundle identities, with stable local Dev signing through `scripts/run-debug.sh`
 - Built-in sound previews now load the selected app-bundled WAV instead of falling back to the system beep
 - Per-event or per-app sound routing, including local system-spoken Codex and Claude cues
@@ -41,4 +41,4 @@
 - Whole-word classifier matching
 - MIT license + CI workflow
 - Event-led low-power monitoring with 30-second idle recovery, per-provider active scans, and cached generating-control paths with safe full-scan fallback
-- Explicit menu-bar insertion state so stale macOS scene restoration cannot silently terminate the app at launch
+- Reliable standard-window launch path so Chime remains reachable even if macOS declines a menu-bar slot
