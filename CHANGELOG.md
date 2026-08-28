@@ -4,7 +4,7 @@
 
 - Restored Chime as a menu-bar agent. It no longer appears in the Dock or opens a normal app window during a healthy launch.
 - Replaced SwiftUI's anonymous menu-bar scene with an AppKit status item that owns a stable persistence identity, avoiding stale `Item-0` restoration state.
-- Added a no-Dock recovery panel for the macOS case where Control Center allocates Chime an off-screen status-item host. The host check now validates the actual menu-bar band rather than accepting an off-screen frame that merely overlaps a display.
+- Added a no-Dock recovery panel for the macOS case where Control Center allocates Chime an off-screen status-item host. The host check validates the actual menu-bar band and detects the system-wide zero-sized Control Center slots that can make an apparently valid item unreachable.
 
 ## 1.2.5 - 2026-08-27
 

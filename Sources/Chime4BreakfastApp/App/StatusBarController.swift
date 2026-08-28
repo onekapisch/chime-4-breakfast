@@ -87,13 +87,21 @@ final class StatusBarController: NSObject {
             return false
         }
 
-        return NSScreen.screens.contains {
+        let isInMenuBarBand = NSScreen.screens.contains {
             StatusItemHostValidator.isHosted(
                 statusItemFrame: frame,
                 screenFrame: $0.frame,
                 visibleFrame: $0.visibleFrame
             )
         }
+        guard isInMenuBarBand else {
+            return false
+        }
+
+        return !ControlCenterStatusHostInspector.needsRecoveryPanel(
+            statusItemIsInMenuBarBand: true,
+            collapsedStatusItemCount: ControlCenterStatusHostInspector.collapsedStatusItemCount()
+        )
     }
 
     @objc private func togglePopover(_ sender: Any?) {

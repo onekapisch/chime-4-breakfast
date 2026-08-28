@@ -28,4 +28,22 @@ final class StatusItemHostValidatorTests: XCTestCase {
             )
         )
     }
+
+    func test_collapsed_control_center_slots_require_recovery_even_with_a_menu_bar_frame() {
+        XCTAssertTrue(
+            ControlCenterStatusHostInspector.needsRecoveryPanel(
+                statusItemIsInMenuBarBand: true,
+                collapsedStatusItemCount: 9
+            )
+        )
+    }
+
+    func test_normal_menu_bar_frame_does_not_require_recovery() {
+        XCTAssertFalse(
+            ControlCenterStatusHostInspector.needsRecoveryPanel(
+                statusItemIsInMenuBarBand: true,
+                collapsedStatusItemCount: 0
+            )
+        )
+    }
 }
