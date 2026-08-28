@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.6 - 2026-08-28
+
+- Restored Chime as a menu-bar agent. It no longer appears in the Dock or opens a normal app window during a healthy launch.
+- Replaced SwiftUI's anonymous menu-bar scene with an AppKit status item that owns a stable persistence identity, avoiding stale `Item-0` restoration state.
+- Added a no-Dock recovery panel so Chime is reachable until its menu-bar icon has been opened successfully once. The panel also returns when AppKit reports that the status item is off-screen.
+
 ## 1.2.5 - 2026-08-27
 
 - Replaced the invisible menu-bar-only launch path with a standard macOS control window. Chime now opens its complete configuration and monitoring UI immediately from Applications or the Dock, even when macOS does not assign a menu-bar slot.

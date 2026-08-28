@@ -2,7 +2,7 @@
 
 ## P1
 
-- Manually validate final v1.2.5 delivery for a short Codex and Claude reply before broad promotion; low-power runtime profiling is complete
+- Manually validate final v1.2.6 Distribution delivery on a clean menu-bar session, including the no-Dock agent launch and the Control Center recovery-panel path
 - Capture Codex diagnostics from long conversations and modal-window states to tune assistant-turn selection further
 
 ## P2
@@ -41,4 +41,3 @@
 - Whole-word classifier matching
 - MIT license + CI workflow
 - Event-led low-power monitoring with 30-second idle recovery, per-provider active scans, and cached generating-control paths with safe full-scan fallback
-- Reliable standard-window launch path so Chime remains reachable even if macOS declines a menu-bar slot
