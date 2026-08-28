@@ -83,13 +83,17 @@ final class StatusBarController: NSObject {
     }
 
     var isHostedOnScreen: Bool {
-        guard let frame = statusItem.button?.window?.frame,
-              frame.width > 1,
-              frame.height > 1 else {
+        guard let frame = statusItem.button?.window?.frame else {
             return false
         }
 
-        return NSScreen.screens.contains { $0.frame.intersects(frame) }
+        return NSScreen.screens.contains {
+            StatusItemHostValidator.isHosted(
+                statusItemFrame: frame,
+                screenFrame: $0.frame,
+                visibleFrame: $0.visibleFrame
+            )
+        }
     }
 
     @objc private func togglePopover(_ sender: Any?) {
