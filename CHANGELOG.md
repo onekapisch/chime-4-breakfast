@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.2.6 - Unreleased
+## 1.2.6 - 2026-08-28
 
 - Restored Chime as a menu-bar agent. It no longer appears in the Dock or opens a normal app window during a healthy launch.
 - Replaced SwiftUI's anonymous menu-bar scene with an AppKit status item that owns a stable persistence identity, avoiding stale `Item-0` restoration state.
