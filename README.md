@@ -76,7 +76,7 @@ The tones are generated from scratch by [`scripts/gen-sounds.py`](scripts/gen-so
 
 It is Developer ID signed and Apple notarized. Chime requires **macOS 14 or later** and supports Apple Silicon and Intel Macs.
 
-Chime is a menu-bar agent, so it does not normally appear in the Dock. If macOS fails to host its status item, Chime opens a temporary recovery panel instead of silently becoming unreachable. Once the menu-bar host is available, that panel closes automatically.
+Chime is a menu-bar agent, so it does not normally appear in the Dock. Until its menu-bar icon has been opened successfully once, Chime keeps a temporary recovery panel available instead of silently becoming unreachable. The panel closes as soon as you open Chime from the menu bar, and it also returns if AppKit reports that the status item is off-screen.
 
 ## Supported today
 

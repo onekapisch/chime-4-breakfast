@@ -29,20 +29,29 @@ final class StatusItemHostValidatorTests: XCTestCase {
         )
     }
 
-    func test_collapsed_control_center_slots_require_recovery_even_with_a_menu_bar_frame() {
+    func test_unconfirmed_status_item_access_requires_recovery() {
         XCTAssertTrue(
-            ControlCenterStatusHostInspector.needsRecoveryPanel(
-                statusItemIsInMenuBarBand: true,
-                collapsedStatusItemCount: 9
+            StatusItemAccessPolicy.needsRecoveryPanel(
+                hasConfirmedStatusItemAccess: false,
+                statusItemIsHostedOnScreen: true
             )
         )
     }
 
-    func test_normal_menu_bar_frame_does_not_require_recovery() {
+    func test_confirmed_onscreen_status_item_does_not_require_recovery() {
         XCTAssertFalse(
-            ControlCenterStatusHostInspector.needsRecoveryPanel(
-                statusItemIsInMenuBarBand: true,
-                collapsedStatusItemCount: 0
+            StatusItemAccessPolicy.needsRecoveryPanel(
+                hasConfirmedStatusItemAccess: true,
+                statusItemIsHostedOnScreen: true
+            )
+        )
+    }
+
+    func test_confirmed_but_offscreen_status_item_requires_recovery() {
+        XCTAssertTrue(
+            StatusItemAccessPolicy.needsRecoveryPanel(
+                hasConfirmedStatusItemAccess: true,
+                statusItemIsHostedOnScreen: false
             )
         )
     }

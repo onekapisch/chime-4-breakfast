@@ -6,7 +6,7 @@ Open the menu-bar popover, select the checkmark badge in the header, then choose
 
 ## Chime opened a recovery panel instead of appearing in the menu bar
 
-Chime is an agent app and never deliberately becomes a Dock app. The recovery panel appears only when macOS has not assigned its status item a usable on-screen host, so the app remains reachable. Leave the panel open while you use Chime; it closes automatically if macOS later hosts the menu-bar icon. Closing the panel keeps it closed until you relaunch Chime.
+Chime is an agent app and never deliberately becomes a Dock app. Until you have opened Chime's icon from the menu bar once, it keeps a recovery panel available so the app cannot become unreachable. The panel closes as soon as the icon is opened. It also returns if AppKit reports an off-screen status-item host. Closing the panel keeps it closed until you relaunch Chime.
 
 ## The popover says No access
 

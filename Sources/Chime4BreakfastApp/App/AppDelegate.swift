@@ -3,6 +3,10 @@ import SwiftUI
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private enum DefaultsKey {
+        static let hasConfirmedStatusItemAccess = "hasConfirmedStatusItemAccess"
+    }
+
     private var appState: AppState?
     private var statusBarController: StatusBarController?
     private var recoveryPanel: NSPanel?
@@ -12,7 +16,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         let appState = AppState()
         self.appState = appState
-        statusBarController = StatusBarController(appState: appState)
+        statusBarController = StatusBarController(appState: appState) { [weak self] in
+            self?.confirmStatusItemAccess()
+        }
         appState.startMonitoringIfNeeded()
         validateStatusItemHost()
     }
@@ -28,7 +34,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             try? await Task.sleep(for: .seconds(3))
 
             while !Task.isCancelled, let self {
-                if statusBarController?.isHostedOnScreen == true {
+                let needsRecoveryPanel = StatusItemAccessPolicy.needsRecoveryPanel(
+                    hasConfirmedStatusItemAccess: hasConfirmedStatusItemAccess,
+                    statusItemIsHostedOnScreen: statusBarController?.isHostedOnScreen == true
+                )
+
+                if !needsRecoveryPanel {
                     dismissRecoveryPanel()
                     return
                 }
@@ -37,6 +48,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 try? await Task.sleep(for: .seconds(15))
             }
         }
+    }
+
+    private var hasConfirmedStatusItemAccess: Bool {
+        UserDefaults.standard.bool(forKey: DefaultsKey.hasConfirmedStatusItemAccess)
+    }
+
+    private func confirmStatusItemAccess() {
+        UserDefaults.standard.set(true, forKey: DefaultsKey.hasConfirmedStatusItemAccess)
+        recoveryTask?.cancel()
+        dismissRecoveryPanel()
     }
 
     private func showRecoveryPanel() {

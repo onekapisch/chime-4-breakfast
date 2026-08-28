@@ -7,12 +7,14 @@ final class StatusBarController: NSObject {
     private static let autosaveName = "Chime4BreakfastStatusItemV2"
 
     private let appState: AppState
+    private let didOpenPopover: () -> Void
     private let popover: NSPopover
     private let statusItem: NSStatusItem
     private var cancellables: Set<AnyCancellable> = []
 
-    init(appState: AppState) {
+    init(appState: AppState, didOpenPopover: @escaping () -> Void) {
         self.appState = appState
+        self.didOpenPopover = didOpenPopover
         popover = NSPopover()
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         super.init()
@@ -94,14 +96,7 @@ final class StatusBarController: NSObject {
                 visibleFrame: $0.visibleFrame
             )
         }
-        guard isInMenuBarBand else {
-            return false
-        }
-
-        return !ControlCenterStatusHostInspector.needsRecoveryPanel(
-            statusItemIsInMenuBarBand: true,
-            collapsedStatusItemCount: ControlCenterStatusHostInspector.collapsedStatusItemCount()
-        )
+        return isInMenuBarBand
     }
 
     @objc private func togglePopover(_ sender: Any?) {
@@ -112,6 +107,7 @@ final class StatusBarController: NSObject {
         } else {
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             popover.contentViewController?.view.window?.makeKey()
+            didOpenPopover()
         }
     }
 }
