@@ -4,42 +4,76 @@ import SwiftUI
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var appState: AppState?
-    private var controlWindow: NSWindow?
+    private var statusBarController: StatusBarController?
+    private var recoveryPanel: NSPanel?
+    private var recoveryTask: Task<Void, Never>?
+    private var didDismissRecoveryPanel = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let appState = AppState()
         self.appState = appState
+        statusBarController = StatusBarController(appState: appState)
+        appState.startMonitoringIfNeeded()
+        validateStatusItemHost()
+    }
 
-        let window = NSWindow(
+    func applicationWillTerminate(_ notification: Notification) {
+        recoveryTask?.cancel()
+    }
+
+    private func validateStatusItemHost() {
+        recoveryTask = Task { [weak self] in
+            // AppKit can attach the status-item window a little after launch.
+            // Do not create a recovery surface until that grace period has passed.
+            try? await Task.sleep(for: .seconds(3))
+
+            while !Task.isCancelled, let self {
+                if statusBarController?.isHostedOnScreen == true {
+                    dismissRecoveryPanel()
+                    return
+                }
+
+                showRecoveryPanel()
+                try? await Task.sleep(for: .seconds(15))
+            }
+        }
+    }
+
+    private func showRecoveryPanel() {
+        guard recoveryPanel == nil, !didDismissRecoveryPanel, let appState else { return }
+
+        let panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 368, height: 640),
-            styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView],
+            styleMask: [.titled, .closable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
-        window.title = "Chime 4 Breakfast"
-        window.titleVisibility = .hidden
-        window.titlebarAppearsTransparent = true
-        window.isReleasedWhenClosed = false
-        window.contentViewController = NSHostingController(
+        panel.title = "Chime 4 Breakfast"
+        panel.titleVisibility = .hidden
+        panel.titlebarAppearsTransparent = true
+        panel.isReleasedWhenClosed = false
+        panel.hidesOnDeactivate = false
+        panel.level = .floating
+        panel.delegate = self
+        panel.contentViewController = NSHostingController(
             rootView: MenuBarPopoverView().environmentObject(appState)
         )
-        window.center()
-        controlWindow = window
-
-        appState.startMonitoringIfNeeded()
-        showControlWindow()
+        panel.center()
+        recoveryPanel = panel
+        panel.makeKeyAndOrderFront(nil)
     }
 
-    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        if !flag {
-            showControlWindow()
-        }
-        return true
+    private func dismissRecoveryPanel() {
+        didDismissRecoveryPanel = false
+        recoveryPanel?.orderOut(nil)
+        recoveryPanel = nil
     }
+}
 
-    private func showControlWindow() {
-        guard let controlWindow else { return }
-        controlWindow.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
+extension AppDelegate: NSWindowDelegate {
+    func windowWillClose(_ notification: Notification) {
+        guard let panel = notification.object as? NSPanel, panel == recoveryPanel else { return }
+        recoveryPanel = nil
+        didDismissRecoveryPanel = true
     }
 }

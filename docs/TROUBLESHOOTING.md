@@ -4,6 +4,10 @@
 
 Open the menu-bar popover, select the checkmark badge in the header, then choose **Test Codex** or **Test Claude**. The test plays the selected completion sound, shows the selected app-color glow, and sends a banner when banners are enabled. It also creates a Recent entry.
 
+## Chime opened a recovery panel instead of appearing in the menu bar
+
+Chime is an agent app and never deliberately becomes a Dock app. The recovery panel appears only when macOS has not assigned its status item a usable on-screen host, so the app remains reachable. Leave the panel open while you use Chime; it closes automatically if macOS later hosts the menu-bar icon. Closing the panel keeps it closed until you relaunch Chime.
+
 ## The popover says No access
 
 1. Launch the installed app from `~/Applications/Chime 4 Breakfast.app`.
