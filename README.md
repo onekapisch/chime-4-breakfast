@@ -16,6 +16,8 @@ A native macOS utility for **Codex Desktop** and **Claude Desktop**. Chime detec
 
 <sub>Universal for Apple Silicon and Intel - 100% local - No account - No telemetry</sub>
 
+<p><a href="https://www.onekapisch.com/products/chime-4-breakfast/">Product page</a> · <a href="https://www.onekapisch.com/products/">All OneKapisch apps</a></p>
+
 </div>
 
 <div align="center">
@@ -74,9 +76,21 @@ The tones are generated from scratch by [`scripts/gen-sounds.py`](scripts/gen-so
 <img src=".github/assets/first-run.png" width="840" alt="Install Chime 4 Breakfast, grant Accessibility permission, and start watching" />
 </div>
 
-It is Developer ID signed and Apple notarized. Chime requires **macOS 14 or later** and supports Apple Silicon and Intel Macs.
+The app is Developer ID signed and Apple notarized, and the DMG carries a stapled notarization ticket. Chime requires **macOS 14 or later** and supports Apple Silicon and Intel Macs.
 
 Chime is a menu-bar agent, so it does not normally appear in the Dock. Until its menu-bar icon has been opened successfully once, Chime keeps a temporary recovery panel available instead of silently becoming unreachable. The panel closes as soon as you open Chime from the menu bar, and it also returns if AppKit reports that the status item is off-screen.
+
+### Or with Homebrew
+
+Homebrew 7 asks you to trust a third-party tap once:
+
+```bash
+brew tap onekapisch/tap
+brew trust onekapisch/tap
+brew install --cask onekapisch/tap/chime-4-breakfast
+```
+
+Remove it with `brew uninstall --zap --cask onekapisch/tap/chime-4-breakfast`.
 
 ## Supported today
 
